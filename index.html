@@ -1,6 +1,13 @@
 <!doctype html>
 <html lang="en">
-<head>
+<head><script>
+window.onerror=function(m,s,l){
+var d=document.createElement('div');
+d.style='position:fixed;top:0;left:0;right:0;background:#a33b32;color:#fff;padding:10px;z-index:99999;font:13px sans-serif';
+d.textContent='ERROR: '+m+' (line '+l+')';
+document.addEventListener('DOMContentLoaded',function(){document.body.appendChild(d)});
+};
+</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#245b38">
