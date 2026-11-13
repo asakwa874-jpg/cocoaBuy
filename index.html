@@ -438,4 +438,20 @@ function backup(){let a=document.createElement('a');a.href=URL.createObjectURL(n
 function restore(ev){let file=ev.target.files[0];if(!file)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.farmers)||!Array.isArray(d.purchases)||!Array.isArray(d.expenses))throw 0;if(confirm('Replace the current app records with this backup?')){db=d;db.payments=db.payments||[];db.agentFunds=db.agentFunds||[];db.deliveries=db.deliveries||[];save();alert('Backup restored.')}}catch(e){alert('This backup file is not valid.')}};r.readAsText(file);ev.target.value=''}
 pDate.value=today();eDate.value=today();dailyDate.value=today();periodDate.value=today();payDate.value=today();fundDate.value=today();dDate.value=today();addPurchaseRow();render();renderDailyReport();renderPeriodReport();loadCloudConfigFields();if(cloudConfig().apiKey)setTimeout(initCloud,300);
 </script>
+ <style>
+#wa-btn{position:fixed;right:16px;bottom:16px;background:#25D366;color:#fff;
+font:bold 18px sans-serif;padding:14px 20px;border-radius:30px;
+text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,.3);z-index:9999}
+</style>
+
+<a id="wa-btn" target="_blank"
+href="https://wa.me/237677098735?text=Hello%2C%20I%27m%20interested%20in%20CocoaBuy">
+💬 WhatsApp</a>
+
+<script>
+function contactPlan(plan){
+  var msg = "Hello, I'm interested in the " + plan + " plan for CocoaBuy.";
+  window.open("https://wa.me/237677098735?text=" + encodeURIComponent(msg), "_blank");
+}
+</script>
 </body></html>
