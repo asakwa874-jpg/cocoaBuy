@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded',function(){document.body.appendChil
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#245b38">
-<title>CocoaBuy Cameroon V5</title>
+<title>CocoaBuy Cameroon V7</title>
 <style>
 :root{--green:#245b38;--green2:#367b4d;--cream:#f5f4ed;--ink:#1e2b22;--muted:#66736a;--line:#dce4dc;--white:#fff;--red:#a33b32}
 *{box-sizing:border-box}body{margin:0;background:var(--cream);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink)}
@@ -54,9 +54,9 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
 </style>
 </head>
 <body>
-<header><h1>🌱 CocoaBuy Cameroon V5</h1><p>Buying records • Farmer balances • Agent control • Cloud backup</p></header>
+<header><h1>🌱 CocoaBuy Cameroon V7</h1><p>Buying records • Farmer balances • Agent control • Cloud backup</p></header>
 <nav id="tabs">
-<button class="active" data-tab="home">Dashboard</button><button data-tab="profit">Profit</button><button data-tab="purchase">New purchase</button><button data-tab="farmers">Farmers</button><button data-tab="payments">Payments</button><button data-tab="agents">Agents</button><button data-tab="deliveries">Deliveries</button><button data-tab="expenses">Expenses</button><button data-tab="reports">Reports</button><button data-tab="settings">Settings</button>
+<button class="active" data-tab="home">Dashboard</button><button data-tab="profit">Profit</button><button data-tab="purchase">New purchase</button><button data-tab="farmers">Farmers</button><button data-tab="payments">Payments</button><button data-tab="loans">Loans</button><button data-tab="agents">Agents</button><button data-tab="deliveries">Deliveries</button><button data-tab="expenses">Expenses</button><button data-tab="reports">Reports</button><button data-tab="settings">Settings</button>
 </nav>
 <main>
 <section id="home" class="active">
@@ -66,7 +66,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
   <div class="stat"><small>Other expenses</small><strong id="sExpenses">0 FCFA</strong></div>
   <div class="stat"><small>Number of purchases</small><strong id="sCount">0</strong></div>
  </div></div>
- <div class="card"><div class="row"><h2>Profit &amp; price</h2><button class="secondary" onclick="showTab('profit')">Open</button></div><div id="pfHomeBox"></div></div><div class="card"><h2>Agent performance</h2><div id="agentSummary"></div></div><div class="card"><div class="row"><h2>Recent purchases</h2><button class="secondary" onclick="showTab('purchase')">+ Add</button></div><div id="recent"></div></div>
+ <div class="card"><div class="row"><h2>Profit &amp; price</h2><button class="secondary" onclick="showTab('profit')">Open</button></div><div id="pfHomeBox"></div></div><div class="card"><div class="row"><h2>Loans &amp; goods to farmers</h2><button class="secondary" onclick="showTab('loans')">Open</button></div><div id="lnHomeBox"></div></div><div class="card"><h2>Agent performance</h2><div id="agentSummary"></div></div><div class="card"><div class="row"><h2>Recent purchases</h2><button class="secondary" onclick="showTab('purchase')">+ Add</button></div><div id="recent"></div></div>
  <div class="notice"><b>Data protection:</b> records are saved on this phone. Connect a cloud account in Settings to turn on automatic online backup. Until cloud status says “Synced”, keep a manual backup too.</div>
 </section>
 <section id="purchase">
@@ -128,6 +128,36 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
  </div><div class="card"><h2>Agent cash accountability</h2><div id="agentCashSummary"></div></div>
  <div class="card"><h2>Buying agents</h2><div id="agentList"></div></div>
 </section>
+<section id="loans">
+ <div class="card"><h2>Loans &amp; goods to farmers</h2>
+  <div class="grid">
+   <div class="stat"><small>Given out</small><strong id="lnGiven">0 FCFA</strong></div>
+   <div class="stat"><small>Already deducted</small><strong id="lnDeducted">0 FCFA</strong></div>
+   <div class="stat" style="grid-column:1/-1"><small>Still owed to you</small><strong id="lnOwed">0 FCFA</strong></div>
+  </div>
+  <p class="muted">No interest. You can deduct part or all of a loan when the farmer delivers cocoa.</p>
+ </div>
+ <div class="card"><h2>Give a loan or goods</h2>
+  <label>Farmer name</label><input id="lnFarmer" list="farmerNames" placeholder="Farmer's name">
+  <label>Date</label><input type="date" id="lnDate">
+  <label>What did you give?</label><select id="lnType"><option>Cash</option><option>Goods</option></select>
+  <label>Goods (only if goods)</label><input id="lnItem" placeholder="Example: sprayer, chemicals">
+  <label>Amount or value (FCFA)</label><input type="number" id="lnAmount" min="1" placeholder="Amount">
+  <label>Note (optional)</label><input id="lnNote" placeholder="Details">
+  <button class="primary" onclick="addLoan()">Save loan / goods</button>
+ </div>
+ <div class="card"><h2>Deduct from a loan</h2>
+  <p class="muted">Use this when the farmer delivers cocoa. Record the cocoa purchase first. The deducted amount reduces the loan and also counts as payment for the cocoa.</p>
+  <label>Farmer name</label><input id="lnrFarmer" list="farmerNames" placeholder="Farmer's name" oninput="lnrHint()">
+  <p class="muted" id="lnrInfo"></p>
+  <label>Date</label><input type="date" id="lnrDate">
+  <label>Amount to deduct (FCFA)</label><input type="number" id="lnrAmount" min="1" placeholder="Part or full loan">
+  <label>Note (optional)</label><input id="lnrNote" placeholder="Details">
+  <button class="primary" onclick="deductLoan()">Save deduction</button>
+ </div>
+ <div class="card"><h2>Farmers who owe you</h2><div id="lnOwingList"></div></div>
+ <div class="card"><h2>Loan history</h2><div id="lnHistory"></div></div>
+</section>
 <section id="settings">
  <div class="card"><h2>Business setup</h2>
   <label>How do you operate?</label>
@@ -164,13 +194,13 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
   <button class="primary" onclick="savePfPrice()">Save today's price</button>
   <p class="muted" id="pfPriceInfo"></p>
  </div>
- <div class="card"><h2>Your margin</h2><div class="grid" id="pfMargin"></div><p class="muted">Cost per kg = average price you paid + your expenses spread over all kg bought.</p></div>
- <div class="card"><h2>Profit on cocoa delivered</h2><div id="pfProfit"></div><p class="muted">Counts deliveries that have a selling price. Profit = money received − (kg delivered × cost per kg).</p></div>
+ <div class="card"><h2>Your margin (estimate)</h2><div class="grid" id="pfMargin"></div><p class="muted">Cost per kg = (average price you paid + your expenses spread over all kg bought) divided by the weight that remains after drying loss.</p></div>
+ <div class="card"><h2>Actual profit (cocoa sold)</h2><div id="pfProfit"></div><p class="muted">Real profit counts only cocoa you delivered and sold with a price, using the weight at the store. Unsold stock is shown above as an estimate, not as profit.</p></div>
  <div class="card"><div class="row"><h2>International price</h2><button class="secondary" onclick="loadIntl(true)">Refresh</button></div><div id="pfIntl" class="muted">Loading…</div></div>
  <div class="card"><h2>Alert settings</h2>
   <label>Smallest margin you accept (FCFA per kg)</label><input type="number" id="pfMinMargin" min="0" step="1">
   <label>Warn me when the international price moves by (%)</label><input type="number" id="pfAlertPct" min="0.5" step="0.5">
-  <button class="secondary" style="margin-top:12px" onclick="savePfSettings()">Save alert settings</button>
+  <label>Weight loss of dried cocoa in stock (%)</label><input type="number" id="pfShrink" min="0" max="20" step="0.01"><p class="muted">Default 1.43% (about 2 kg lost for every 140 kg). Change it if your own weighing shows a different loss.</p><button class="secondary" style="margin-top:12px" onclick="savePfSettings()">Save alert settings</button>
  </div>
  <div class="card"><div class="actions no-print"><button class="secondary" onclick="sharePfWhatsApp()">Send price update on WhatsApp</button></div></div>
  <div class="card"><h2>Market price history</h2><div id="pfHistory"></div></div>
@@ -180,12 +210,11 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
   <label>Delivery date</label><input type="date" id="dDate">
   <label>Buying agent</label><select id="dAgent"></select>
   <label>Receiving store</label><input id="dStore" placeholder="Main store / buyer name">
-  <label>Weight delivered (kg)</label><input type="number" id="dWeight" min="0.01" step="0.01" placeholder="kg">
+  <label>Weight sold / delivered (kg) — as weighed at the store</label><input type="number" id="dWeight" min="0.01" step="0.01" placeholder="kg">
   <label>Selling price per kg (FCFA) — needed for profit</label><input type="number" id="dPrice" min="0" step="1" placeholder="Price you sold at">
   <label>Delivery reference / note</label><input id="dNote" placeholder="Waybill, truck or receipt reference">
   <button class="primary" onclick="addDelivery()">Save delivery</button>
- </div><div class="card"><h2>Stock reconciliation</h2><div class="grid"><div class="stat"><small>Total purchased</small><strong id="stockBought">0 kg</strong></div><div class="stat"><small>Total delivered</small><strong id="stockDelivered">0 kg</strong></div><div class="stat"><small>Undelivered balance</small><strong id="stockBalance">0 kg</strong></div></div><p class="muted">This is a basic overall reconciliation. It does not yet track individual bags or quality/grade.</p></div>
- <div class="card"><h2>Delivery history</h2><div id="deliveryList"></div></div>
+ </div><div class="card"><h2>Stock reconciliation</h2><div class="grid"><div class="stat"><small>Total purchased</small><strong id="stockBought">0 kg</strong></div><div class="stat"><small>Total delivered</small><strong id="stockDelivered">0 kg</strong></div><div class="stat"><small>Expected stock (after weight loss)</small><strong id="stockBalance">0 kg</strong></div></div><p class="muted">Expected stock = cocoa bought, minus the weight loss, minus cocoa delivered.</p><label>Count your real stock (kg on the scale)</label><input type="number" id="scKg" min="0" step="0.01" placeholder="kg weighed"><button class="secondary" style="margin-top:10px" onclick="addStockCount()">Save stock count</button><div id="scInfo" class="muted" style="margin-top:10px"></div></div> <div class="card"><h2>Delivery history</h2><div id="deliveryList"></div></div>
 </section>
 <section id="reports">
  <div class="card"><h2>Business report</h2><div class="grid">
@@ -284,7 +313,7 @@ function savePurchaseRows(){
 }
 function addExpense(){let amount=+eAmount.value;if(!(amount>0))return alert('Enter a valid expense amount.');db.expenses.unshift({id:Date.now(),date:eDate.value||today(),type:eType.value,amount,desc:eDesc.value.trim()});eAmount.value='';eDesc.value='';eDate.value=today();save();alert('Expense saved.')}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function render(){businessMode.value=db.settings.mode||'both';businessName.value=db.settings.name||'';modeBadge.textContent=(db.settings.mode==='company'?'Company dashboard':db.settings.mode==='both'?'Independent + company':'Independent buyer');let totalKg=db.purchases.reduce((a,p)=>a+p.weight,0),value=db.purchases.reduce((a,p)=>a+p.total,0),paid=db.purchases.reduce((a,p)=>a+p.paid,0)+db.payments.reduce((a,p)=>a+(+p.amount||0),0),expenses=db.expenses.reduce((a,e)=>a+e.amount,0),balance=value-paid-db.payments.reduce((a,p)=>a+(+p.amount||0),0);
+function render(){db.loans=db.loans||[];db.loanReturns=db.loanReturns||[];db.stockCounts=db.stockCounts||[];businessMode.value=db.settings.mode||'both';businessName.value=db.settings.name||'';modeBadge.textContent=(db.settings.mode==='company'?'Company dashboard':db.settings.mode==='both'?'Independent + company':'Independent buyer');let totalKg=db.purchases.reduce((a,p)=>a+p.weight,0),value=db.purchases.reduce((a,p)=>a+p.total,0),paid=db.purchases.reduce((a,p)=>a+p.paid,0)+db.payments.reduce((a,p)=>a+(+p.amount||0),0),expenses=db.expenses.reduce((a,e)=>a+e.amount,0),balance=value-paid-db.payments.reduce((a,p)=>a+(+p.amount||0),0);
 sKg.textContent=kg(totalKg);sValue.textContent=money(value);sExpenses.textContent=money(expenses);sCount.textContent=db.purchases.length;
 rKg.textContent=kg(totalKg);rPaid.textContent=money(paid);rBalance.textContent=money(balance);rExpense.textContent=money(expenses);
 recent.innerHTML=db.purchases.length?db.purchases.slice(0,6).map(p=>purchaseHTML(p)).join(''):'<div class="empty">No purchases recorded yet.</div>';
@@ -294,7 +323,7 @@ renderDailyReport();
 purchaseHistory.innerHTML=db.purchases.length?db.purchases.map(p=>purchaseHTML(p)).join(''):'<div class="empty">No purchase records yet.</div>';
 farmerList.innerHTML=db.farmers.length?db.farmers.map(f=>`<div class="item"><b>${esc(f.name)}</b><p class="muted">${esc(f.phone)} ${f.village?' • '+esc(f.village):''}</p><button class="danger" onclick="removeFarmer(${f.id})">Delete</button></div>`).join(''):'<div class="empty">No farmers registered yet.</div>';
 expenseList.innerHTML=db.expenses.length?db.expenses.map(e=>`<div class="item row"><div><b>${esc(e.type)} — ${money(e.amount)}</b><p class="muted">${esc(e.date)} ${esc(e.desc)}</p></div><button class="danger" onclick="removeExpense(${e.id})">Delete</button></div>`).join(''):'<div class="empty">No expenses recorded yet.</div>';
-renderFarmerHistory();renderPaymentList();renderDeliveryList();renderAgentCash();fillAgentSelectors();renderProfit();stockBought.textContent=kg(db.purchases.reduce((a,p)=>a+(+p.weight||0),0));stockDelivered.textContent=kg(db.deliveries.reduce((a,d)=>a+(+d.weight||0),0));stockBalance.textContent=kg(db.purchases.reduce((a,p)=>a+(+p.weight||0),0)-db.deliveries.reduce((a,d)=>a+(+d.weight||0),0));
+renderFarmerHistory();renderPaymentList();renderDeliveryList();renderAgentCash();fillAgentSelectors();renderProfit();stockBought.textContent=kg(db.purchases.reduce((a,p)=>a+(+p.weight||0),0));stockDelivered.textContent=kg(db.deliveries.reduce((a,d)=>a+(+d.weight||0),0));stockBalance.textContent=kg(pfStats().expStock);renderLoans();renderStockCount();
 
 balance=value-paid;rBalance.textContent=money(balance);}
 function purchaseHTML(p){return `<div class="item"><div class="row"><b>${esc(p.farmer)}</b><span class="amount">${money(p.total)}</span></div><p>${kg(p.weight)} × ${money(p.price).replace(' FCFA','')}</p><p class="muted">Agent: ${esc(p.agent||'Owner / not assigned')}</p><p class="muted">${esc(p.date)} ${p.location?' • '+esc(p.location):''}</p><p class="muted">Paid: ${money(p.paid)} | Balance: ${money(farmerBalance(p.farmer))}</p>${p.note?`<p class="muted">${esc(p.note)}</p>`:''}<div class="actions no-print"><button class="secondary" onclick="printReceipt(${p.id})">Print receipt</button><button class="secondary" onclick="editPurchase(${p.id})">Edit</button><button class="danger" onclick="removePurchase(${p.id})">Delete record</button></div></div>`}
@@ -353,8 +382,7 @@ function dateISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2
 function periodData(){
  let type=periodType.value||'week',bounds=periodBounds(type,periodDate.value||today());
  let ps=db.purchases.filter(p=>p.date>=bounds.start&&p.date<=bounds.end);
- let es=db.expenses.filter(e=>e.date>=bounds.start&&e.date<=bounds.end),payments=db.payments.filter(p=>p.date>=bounds.start&&p.date<=bounds.end);
- return {type,...bounds,ps,es,payments,weight:ps.reduce((a,p)=>a+(+p.weight||0),0),
+ let es=db.expenses.filter(e=>e.date>=bounds.start&&e.date<=bounds.end),payments=db.payments.filter(p=>p.date>=bounds.start&&p.date<=bounds.end); return {type,...bounds,ps,es,payments,weight:ps.reduce((a,p)=>a+(+p.weight||0),0),
   value:ps.reduce((a,p)=>a+(+p.total||0),0),paid:ps.reduce((a,p)=>a+(+p.paid||0),0)+payments.reduce((a,p)=>a+(+p.amount||0),0),
   expenses:es.reduce((a,e)=>a+(+e.amount||0),0)};
 }
@@ -417,11 +445,11 @@ function renderFarmerHistory(){
  const box=document.getElementById('farmerHistory'),search=(document.getElementById('farmerSearch')?.value||'').trim().toLowerCase();if(!box)return;
  const names=[...new Set(db.purchases.map(p=>p.farmer).filter(Boolean))].filter(n=>!search||n.toLowerCase().includes(search)||((db.farmers.find(f=>f.name.toLowerCase()===n.toLowerCase())||{}).phone||'').toLowerCase().includes(search));
  const datalist=document.getElementById('farmerNames');if(datalist)datalist.innerHTML=[...new Set([...db.farmers.map(f=>f.name),...db.purchases.map(p=>p.farmer)])].filter(Boolean).map(n=>`<option value="${esc(n)}">`).join('');
- box.innerHTML=names.length?names.map(n=>{let ps=db.purchases.filter(p=>p.farmer.toLowerCase()===n.toLowerCase()),total=farmerBought(n),paid=farmerPaidAtPurchase(n)+farmerLaterPayments(n);return `<div class="item"><div class="row"><b>${esc(n)}</b><b class="amount">Balance: ${money(total-paid)}</b></div><p class="muted">${ps.length} purchase(s) • ${kg(ps.reduce((a,p)=>a+(+p.weight||0),0))} • Purchase value ${money(total)} • Paid ${money(paid)}</p>${ps.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(p=>`<p class="muted">${esc(p.date)} — ${kg(p.weight)} × ${money(p.price)} — ${money(p.total)} — paid ${money(p.paid)}</p>`).join('')}${db.payments.filter(p=>p.farmer.toLowerCase()===n.toLowerCase()).map(p=>`<p class="muted">Payment ${esc(p.date)} — ${money(p.amount)} (${esc(p.method)})</p>`).join('')}</div>`}).join(''):'<div class="empty">No matching farmer transactions. Purchases are matched using the seller name entered on each transaction.</div>';
+ box.innerHTML=names.length?names.map(n=>{let ps=db.purchases.filter(p=>p.farmer.toLowerCase()===n.toLowerCase()),total=farmerBought(n),paid=farmerPaidAtPurchase(n)+farmerLaterPayments(n);return `<div class="item"><div class="row"><b>${esc(n)}</b><b class="amount">Balance: ${money(total-paid)}</b></div>${loanBalance(n)>0?'<p class="muted"><b>Loan / goods owed to you: '+money(loanBalance(n))+'</b></p>':''}<p class="muted">${ps.length} purchase(s) • ${kg(ps.reduce((a,p)=>a+(+p.weight||0),0))} • Purchase value ${money(total)} • Paid ${money(paid)}</p>${ps.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(p=>`<p class="muted">${esc(p.date)} — ${kg(p.weight)} × ${money(p.price)} — ${money(p.total)} — paid ${money(p.paid)}</p>`).join('')}${db.payments.filter(p=>p.farmer.toLowerCase()===n.toLowerCase()).map(p=>`<p class="muted">Payment ${esc(p.date)} — ${money(p.amount)} (${esc(p.method)})</p>`).join('')}</div>`}).join(''):'<div class="empty">No matching farmer transactions. Purchases are matched using the seller name entered on each transaction.</div>';
 }
 function addFarmerPayment(){let farmer=payFarmer.value.trim(),amount=+payAmount.value;if(!farmer||!(amount>0))return alert('Enter farmer name and a valid payment amount.');if(amount>farmerBalance(farmer))return alert('Payment is greater than the outstanding balance for this farmer.');db.payments.unshift({id:Date.now(),farmer,date:payDate.value||today(),amount,method:payMethod.value,note:payNote.value.trim()});payAmount.value='';payNote.value='';save();alert('Farmer payment saved.');}
 function renderPaymentList(){let el=document.getElementById('paymentList');if(!el)return;el.innerHTML=db.payments.length?db.payments.map(p=>`<div class="item row"><div><b>${esc(p.farmer)} — ${money(p.amount)}</b><p class="muted">${esc(p.date)} • ${esc(p.method)} ${p.note?'• '+esc(p.note):''}</p></div><button class="danger" onclick="deletePayment(${p.id})">Delete</button></div>`).join(''):'<div class="empty">No later payments recorded.</div>';}
-function deletePayment(id){if(confirm('Delete this payment record?')){db.payments=db.payments.filter(p=>p.id!==id);save()}}
+function deletePayment(id){if(confirm('Delete this payment record?')){db.payments=db.payments.filter(p=>p.id!==id);db.loanReturns=(db.loanReturns||[]).filter(r=>r.payId!==id);save()}}
 function fillAgentSelectors(){let opts='<option value="">Select agent</option>'+db.agents.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join('');['fundAgent','dAgent'].forEach(id=>{let el=document.getElementById(id);if(el){let old=el.value;el.innerHTML=opts;el.value=old}})}
 function addAgentFund(){let agentId=fundAgent.value,amount=+fundAmount.value;if(!agentId||!(amount>0))return alert('Select an agent and enter an amount.');let a=db.agents.find(x=>String(x.id)===String(agentId));db.agentFunds.unshift({id:Date.now(),agentId:String(agentId),agent:a?.name||'',date:fundDate.value||today(),amount,note:fundNote.value.trim()});fundAmount.value='';fundNote.value='';save();alert('Agent funds recorded.');}
 function renderAgentCash(){let el=document.getElementById('agentCashSummary');if(!el)return;el.innerHTML=db.agents.length?db.agents.map(a=>{let funds=db.agentFunds.filter(x=>String(x.agentId)===String(a.id)).reduce((s,x)=>s+(+x.amount||0),0),spent=db.purchases.filter(x=>String(x.agentId)===String(a.id)).reduce((s,x)=>s+(+x.total||0),0),balance=funds-spent;return `<div class="item"><b>${esc(a.name)}</b><p class="muted">Funds issued: ${money(funds)} • Purchase value: ${money(spent)}</p><b class="amount">Cash position before expenses: ${money(balance)}</b></div>`}).join(''):'<div class="empty">Register agents to track money issued to them.</div>';}
@@ -442,10 +470,10 @@ async function cloudCreateAccount(){if(!cloudAuth&&!initCloud())return;let email
 async function cloudSignIn(){if(!cloudAuth&&!initCloud())return;let email=cloudEmail.value.trim(),password=cloudPassword.value;if(!email||!password)return alert('Enter your email and password.');try{await cloudAuth.signInWithEmailAndPassword(email,password);cloudPassword.value='';}catch(e){alert('Sign-in failed: '+e.message);}}
 async function cloudSignOut(){if(cloudAuth)await cloudAuth.signOut();cloudReady=false;cloudUser=null;setCloudStatus('Signed out. Local records remain on this phone.');}
 function cloudDoc(){return cloudDb.collection('users').doc(cloudUser.uid).collection('cocoabuy').doc('main');}
-async function prepareCloudSync(){try{let snap=await cloudDoc().get(),cloudData=snap.exists?snap.data().payload:null,linked=localStorage.getItem('cocoabuy_cloud_linked_uid_v5')===cloudUser.uid;if(cloudData&&linked){let localStamp=Number(db._localUpdatedAt||0),cloudStamp=Number(cloudData._localUpdatedAt||0);document.getElementById('cloudSyncChoices').style.display='none';if(localStamp>cloudStamp){['farmers','purchases','expenses','agents','payments','agentFunds','deliveries','prices'].forEach(k=>db[k]=mergeById(db[k],cloudData[k]||[]));db.settings={...(cloudData.settings||{}),...(db.settings||{})};localStorage.setItem(KEY,JSON.stringify(db));cloudReady=true;await uploadCloudNow();setCloudStatus('Local changes merged with cloud. Automatic backup is ON.');}else{db=cloudData;db.payments=db.payments||[];db.agentFunds=db.agentFunds||[];db.deliveries=db.deliveries||[];localStorage.setItem(KEY,JSON.stringify(db));cloudReady=true;render();setCloudStatus('Cloud records restored and synced. Automatic backup is ON.');}}else if(cloudData){document.getElementById('cloudSyncChoices').style.display='block';setCloudStatus('Cloud backup found. Choose merge, restore, or replace cloud with this phone.');cloudPendingData=cloudData;}else{cloudReady=true;localStorage.setItem('cocoabuy_cloud_linked_uid_v5',cloudUser.uid);await uploadCloudNow();setCloudStatus('Cloud account connected. Initial backup completed; automatic backup is ON.');}}catch(e){setCloudStatus('Could not read cloud backup: '+e.message);}}
+async function prepareCloudSync(){try{let snap=await cloudDoc().get(),cloudData=snap.exists?snap.data().payload:null,linked=localStorage.getItem('cocoabuy_cloud_linked_uid_v5')===cloudUser.uid;if(cloudData&&linked){let localStamp=Number(db._localUpdatedAt||0),cloudStamp=Number(cloudData._localUpdatedAt||0);document.getElementById('cloudSyncChoices').style.display='none';if(localStamp>cloudStamp){['farmers','purchases','expenses','agents','payments','agentFunds','deliveries','prices','loans','loanReturns','stockCounts'].forEach(k=>db[k]=mergeById(db[k],cloudData[k]||[]));db.settings={...(cloudData.settings||{}),...(db.settings||{})};localStorage.setItem(KEY,JSON.stringify(db));cloudReady=true;await uploadCloudNow();setCloudStatus('Local changes merged with cloud. Automatic backup is ON.');}else{db=cloudData;db.payments=db.payments||[];db.agentFunds=db.agentFunds||[];db.deliveries=db.deliveries||[];localStorage.setItem(KEY,JSON.stringify(db));cloudReady=true;render();setCloudStatus('Cloud records restored and synced. Automatic backup is ON.');}}else if(cloudData){document.getElementById('cloudSyncChoices').style.display='block';setCloudStatus('Cloud backup found. Choose merge, restore, or replace cloud with this phone.');cloudPendingData=cloudData;}else{cloudReady=true;localStorage.setItem('cocoabuy_cloud_linked_uid_v5',cloudUser.uid);await uploadCloudNow();setCloudStatus('Cloud account connected. Initial backup completed; automatic backup is ON.');}}catch(e){setCloudStatus('Could not read cloud backup: '+e.message);}}
 let cloudPendingData=null;
 function mergeById(a,b){let m=new Map();[...(a||[]),...(b||[])].forEach(x=>m.set(String(x.id),x));return [...m.values()];}
-async function cloudMerge(){if(!cloudPendingData)return;['farmers','purchases','expenses','agents','payments','agentFunds','deliveries','prices'].forEach(k=>db[k]=mergeById(db[k],cloudPendingData[k]||[]));db.settings={...(cloudPendingData.settings||{}),...(db.settings||{})};localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('cocoabuy_cloud_linked_uid_v5',cloudUser.uid);document.getElementById('cloudSyncChoices').style.display='none';cloudReady=true;render();await uploadCloudNow();setCloudStatus('Local and cloud records merged. Automatic backup is ON.');}
+async function cloudMerge(){if(!cloudPendingData)return;['farmers','purchases','expenses','agents','payments','agentFunds','deliveries','prices','loans','loanReturns','stockCounts'].forEach(k=>db[k]=mergeById(db[k],cloudPendingData[k]||[]));db.settings={...(cloudPendingData.settings||{}),...(db.settings||{})};localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('cocoabuy_cloud_linked_uid_v5',cloudUser.uid);document.getElementById('cloudSyncChoices').style.display='none';cloudReady=true;render();await uploadCloudNow();setCloudStatus('Local and cloud records merged. Automatic backup is ON.');}
 async function cloudRestore(){if(!cloudPendingData)return;if(!confirm('Replace the records on this phone with the cloud backup? Download a local backup first if needed.'))return;db=cloudPendingData;db.payments=db.payments||[];db.agentFunds=db.agentFunds||[];db.deliveries=db.deliveries||[];localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('cocoabuy_cloud_linked_uid_v5',cloudUser.uid);document.getElementById('cloudSyncChoices').style.display='none';cloudReady=true;render();setCloudStatus('Cloud records restored to this phone. Automatic backup is ON.');}
 async function cloudUploadLocal(){if(!confirm('Replace the cloud backup with all records currently on this phone?'))return;document.getElementById('cloudSyncChoices').style.display='none';localStorage.setItem('cocoabuy_cloud_linked_uid_v5',cloudUser.uid);cloudReady=true;await uploadCloudNow();setCloudStatus('This phone has replaced the cloud backup. Automatic backup is ON.');}
 window.addEventListener('online',()=>{if(cloudReady&&cloudUser){setCloudStatus('Internet restored. Syncing backup…');uploadCloudNow();}});
@@ -456,23 +484,24 @@ async function uploadCloudNow(){if(!cloudReady||!cloudUser||!cloudDb)return;try{
 function removePurchase(id){if(confirm('Delete this purchase record?')){db.purchases=db.purchases.filter(x=>x.id!==id);save()}}
 function removeExpense(id){if(confirm('Delete this expense?')){db.expenses=db.expenses.filter(x=>x.id!==id);save()}}
 function removeFarmer(id){if(confirm('Delete this farmer? Existing purchase records will remain.')){db.farmers=db.farmers.filter(x=>x.id!==id);save()}}
-function downloadCSV(){let rows=[['Date','Agent','Farmer','Location','Weight kg','Price per kg','Total FCFA','Paid at purchase FCFA','Later payments FCFA','Balance FCFA','Notes'],...db.purchases.map(p=>[p.date,p.agent||'Owner',p.farmer,p.location,p.weight,p.price,p.total,p.paid,farmerLaterPayments(p.farmer),farmerBalance(p.farmer),p.note])];let csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='cocoabuy-purchases.csv';a.click();URL.revokeObjectURL(a.href)}
-function backup(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='cocoabuy-v5-backup.json';a.click();URL.revokeObjectURL(a.href)}
+function downloadCSV(){let rows=[['Date','Agent','Farmer','Location','Weight kg','Price per kg','Total FCFA','Paid at purchase FCFA','Later payments FCFA','Balance FCFA','Notes'],...db.purchases.map(p=>[p.date,p.agent||'Owner',p.farmer,p.location,p.weight,p.price,p.total,p.paid,farmerLaterPayments(p.farmer),farmerBalance(p.farmer),p.note])];let csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));a.download='cocoabuy-purchases.csv';a.click();URL.revokeObjectURL(a.href)}function backup(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='cocoabuy-v5-backup.json';a.click();URL.revokeObjectURL(a.href)}
 function restore(ev){let file=ev.target.files[0];if(!file)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(!Array.isArray(d.farmers)||!Array.isArray(d.purchases)||!Array.isArray(d.expenses))throw 0;if(confirm('Replace the current app records with this backup?')){db=d;db.payments=db.payments||[];db.agentFunds=db.agentFunds||[];db.deliveries=db.deliveries||[];save();alert('Backup restored.')}}catch(e){alert('This backup file is not valid.')}};r.readAsText(file);ev.target.value=''}
 // V6: profit tracker and international price alerts
 const INTL_URL='https://cocoabuy-cameroon.vercel.app/api/cocoa';
 let pfIntlData=null;
 const pfNum=x=>+x||0;
+function pfShrinkRate(){const v=(db.settings||{}).shrinkPct;const p=v==null?1.43:(+v||0);return Math.min(50,Math.max(0,p))/100}
 function pfStats(){
  const bought=db.purchases.reduce((a,p)=>a+pfNum(p.weight),0),cost=db.purchases.reduce((a,p)=>a+pfNum(p.total),0),exp=db.expenses.reduce((a,e)=>a+pfNum(e.amount),0),delivered=db.deliveries.reduce((a,d)=>a+pfNum(d.weight),0);
- const avgCost=bought?cost/bought:0,expKg=bought?exp/bought:0;
- return {bought,cost,exp,delivered,stock:bought-delivered,avgCost,expKg,unitCost:avgCost+expKg};
+ const sh=pfShrinkRate(),avgCost=bought?cost/bought:0,expKg=bought?exp/bought:0,unitCost=avgCost+expKg,realCost=unitCost/(1-sh);
+ return {bought,cost,exp,delivered,sh,avgCost,expKg,unitCost,realCost,expStock:Math.max(0,bought*(1-sh)-delivered)};
 }
+function pfMaxPay(price,s,minM){return Math.max(0,(price-minM)*(1-s.sh)-s.expKg)}
 function pfMarket(){return (db.prices||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0]||null}
 function pfDelivered(start,end){
  const s=pfStats();let kgs=0,rev=0;
  db.deliveries.forEach(d=>{if(d.date<start||d.date>end)return;const w=pfNum(d.weight),pr=pfNum(d.price);if(pr>0){kgs+=w;rev+=w*pr}});
- return {kgs,rev,profit:rev-kgs*s.unitCost};
+ return {kgs,rev,profit:rev-kgs*s.realCost};
 }
 function pfAlertList(){
  const s=pfStats(),mk=pfMarket(),set=db.settings||{},minM=set.minMargin==null?50:pfNum(set.minMargin),pct=set.alertPct==null?3:pfNum(set.alertPct),out=[];
@@ -480,9 +509,9 @@ function pfAlertList(){
  else{
   if(mk.date!==today())out.push(['warn','Your last market price is from '+mk.date+'. Update it for today.']);
   if(s.bought>0){
-   const m=mk.price-s.unitCost;
-   if(m<=0)out.push(['bad','Warning: at '+money(mk.price)+'/kg you would LOSE '+money(-m)+' on every kg of your current stock.']);
-   else if(m<minM)out.push(['warn','Low margin: only '+money(m)+' per kg (your minimum is '+money(minM)+'). Do not pay farmers more than '+money(Math.max(0,mk.price-s.expKg-minM))+'/kg.']);
+   const m=mk.price-s.realCost;
+   if(m<=0)out.push(['bad','Warning: at '+money(mk.price)+'/kg you would LOSE '+money(-m)+' on every kg of your current stock (after weight loss).']);
+   else if(m<minM)out.push(['warn','Low margin: only '+money(m)+' per kg (your minimum is '+money(minM)+'). Do not pay farmers more than '+money(pfMaxPay(mk.price,s,minM))+'/kg.']);
    else out.push(['good','Good margin: '+money(m)+' per kg at today\'s price.']);
   }
  }
@@ -499,16 +528,17 @@ function renderProfit(){
  const html=al.map(a=>`<div class="pf-alert pf-${a[0]}">${esc(a[1])}</div>`).join('');
  pfAlerts.innerHTML=html;
  const hb=document.getElementById('pfHomeBox');
- if(hb)hb.innerHTML=(mk&&s.bought>0?`<div class="grid"><div class="stat"><small>Margin per kg</small><strong>${money(mk.price-s.unitCost)}</strong></div><div class="stat"><small>Stock in hand</small><strong>${kg(s.stock)}</strong></div></div>`:'')+(al.length?`<div class="pf-alert pf-${al[0][0]}" style="margin-top:10px">${esc(al[0][1])}</div>`:'');
+ if(hb)hb.innerHTML=(mk&&s.bought>0?`<div class="grid"><div class="stat"><small>Margin per kg</small><strong>${money(mk.price-s.realCost)}</strong></div><div class="stat"><small>Expected stock</small><strong>${kg(s.expStock)}</strong></div></div>`:'')+(al.length?`<div class="pf-alert pf-${al[0][0]}" style="margin-top:10px">${esc(al[0][1])}</div>`:'');
  if(document.activeElement!==pfPrice)pfPrice.value=mk&&mk.date===today()?mk.price:'';
  pfPriceInfo.textContent=mk?'Last saved: '+money(mk.price)+'/kg on '+mk.date:'No market price saved yet.';
  if(document.activeElement!==pfMinMargin)pfMinMargin.value=minM;
  if(document.activeElement!==pfAlertPct)pfAlertPct.value=set.alertPct==null?3:set.alertPct;
+ if(document.activeElement!==pfShrink)pfShrink.value=set.shrinkPct==null?1.43:set.shrinkPct;
  const st=x=>`<div class="stat"><small>${x[0]}</small><strong>${x[1]}</strong></div>`;
  if(!s.bought)pfMargin.innerHTML='<div class="empty" style="grid-column:1/-1">Record purchases to see your margin.</div>';
  else{
-  const rows=[['Average buying price',money(s.avgCost)+'/kg'],['Expenses per kg',money(s.expKg)+'/kg'],['Break-even selling price',money(s.unitCost)+'/kg'],['Stock in hand',kg(s.stock)]];
-  if(mk){const m=mk.price-s.unitCost;rows.push(['Margin per kg today',money(m)],['Profit if all stock sold today',money(m*Math.max(0,s.stock))],['Highest price to pay farmers',money(Math.max(0,mk.price-s.expKg-minM))+'/kg']);}
+  const rows=[['Average buying price',money(s.avgCost)+'/kg'],['Expenses per kg',money(s.expKg)+'/kg'],['Weight loss allowed',(s.sh*100).toFixed(2)+'%'],['Break-even selling price',money(s.realCost)+'/kg'],['Expected stock (after weight loss)',kg(s.expStock)]];
+  if(mk){const m=mk.price-s.realCost;rows.push(['Margin per kg today',money(m)],['Expected profit on unsold stock (estimate)',money(m*s.expStock)],['Highest price to pay farmers',money(pfMaxPay(mk.price,s,minM))+'/kg']);}
   pfMargin.innerHTML=rows.map(st).join('');
  }
  const t=today(),wk=periodBounds('week',t),mo=periodBounds('month',t);
@@ -520,7 +550,7 @@ function renderProfit(){
 }
 function savePfPrice(){const v=+pfPrice.value;if(!(v>0))return alert('Enter a valid price per kg.');db.prices=db.prices||[];const d=today();db.prices=db.prices.filter(x=>x.date!==d);db.prices.unshift({id:'p'+d,date:d,price:v});save();alert('Price saved.')}
 function removePfPrice(id){if(confirm('Delete this price?')){db.prices=db.prices.filter(x=>String(x.id)!==String(id));save()}}
-function savePfSettings(){db.settings=db.settings||{};db.settings.minMargin=Math.max(0,+pfMinMargin.value||0);db.settings.alertPct=Math.max(0.5,+pfAlertPct.value||3);save();alert('Alert settings saved.')}
+function savePfSettings(){db.settings=db.settings||{};db.settings.minMargin=Math.max(0,+pfMinMargin.value||0);db.settings.alertPct=Math.max(0.5,+pfAlertPct.value||3);db.settings.shrinkPct=pfShrink.value===''?1.43:Math.min(20,Math.max(0,+pfShrink.value||0));save();alert('Alert settings saved.')}
 function setDeliveryPrice(id){const d=db.deliveries.find(x=>x.id===id);if(!d)return;const v=Number(prompt('Selling price per kg (FCFA):',d.price||''));if(!(v>0))return alert('Invalid price.');d.price=v;save()}
 async function loadIntl(force){
  try{
@@ -537,13 +567,66 @@ async function loadIntl(force){
 }
 function sharePfWhatsApp(){
  const s=pfStats(),mk=pfMarket(),set=db.settings||{},minM=set.minMargin==null?50:pfNum(set.minMargin),i=pfIntlData,L=[(db.settings.name||'CocoaBuy Cameroon')+' — COCOA PRICE UPDATE','Date: '+today(),''];
- if(mk){L.push('Market price: '+money(mk.price)+'/kg ('+mk.date+')');if(s.bought>0)L.push('Highest price to pay farmers: '+money(Math.max(0,mk.price-s.expKg-minM))+'/kg')}
+ if(mk){L.push('Market price: '+money(mk.price)+'/kg ('+mk.date+')');if(s.bought>0)L.push('Highest price to pay farmers: '+money(pfMaxPay(mk.price,s,minM))+'/kg')}
  if(i)L.push('','International reference (ICE New York): '+money(i.usdPerTonne).replace(' FCFA','')+' USD/tonne ≈ '+money(i.fcfaPerKg)+'/kg','Last session: '+(i.dayPct>=0?'+':'')+(+i.dayPct).toFixed(1)+'%');
  window.open('https://wa.me/?text='+encodeURIComponent(L.join('\n')),'_blank');
 }
+// V7: loans & goods to farmers
+const sameName=(a,b)=>String(a||'').trim().toLowerCase()===String(b||'').trim().toLowerCase();
+function loanGiven(n){return (db.loans||[]).filter(l=>sameName(l.farmer,n)).reduce((a,l)=>a+(+l.amount||0),0)}
+function loanDeducted(n){return (db.loanReturns||[]).filter(l=>sameName(l.farmer,n)).reduce((a,l)=>a+(+l.amount||0),0)}
+function loanBalance(n){return loanGiven(n)-loanDeducted(n)}
+function addLoan(){
+ const farmer=lnFarmer.value.trim(),amount=+lnAmount.value,type=lnType.value,item=lnItem.value.trim();
+ if(!farmer||!(amount>0))return alert('Enter the farmer name and the amount or value.');
+ if(type==='Goods'&&!item)return alert('Write what goods you gave (example: sprayer, chemicals).');
+ db.loans=db.loans||[];
+ db.loans.unshift({id:Date.now(),farmer,date:lnDate.value||today(),type,item:type==='Goods'?item:'',amount,note:lnNote.value.trim()});
+ lnAmount.value='';lnItem.value='';lnNote.value='';save();alert('Saved.');
+}
+function deductLoan(){
+ const farmer=lnrFarmer.value.trim(),amount=+lnrAmount.value;
+ if(!farmer||!(amount>0))return alert('Enter the farmer name and the amount to deduct.');
+ const owed=loanBalance(farmer);
+ if(!(owed>0))return alert('This farmer has no loan or goods balance.');
+ if(amount>owed)return alert('The farmer only owes '+money(owed)+'.');
+ const cocoa=farmerBalance(farmer);
+ if(amount>cocoa)return alert('You only owe this farmer '+money(Math.max(0,cocoa))+' for cocoa. Record the cocoa purchase first, then deduct.');
+ const payId=Date.now(),date=lnrDate.value||today();
+ db.payments.unshift({id:payId,farmer,date,amount,method:'Loan deduction',note:'Deducted from loan / goods'});
+ db.loanReturns=db.loanReturns||[];
+ db.loanReturns.unshift({id:payId+1,farmer,date,amount,payId,note:lnrNote.value.trim()});
+ lnrAmount.value='';lnrNote.value='';save();lnrHint();alert('Deduction saved. The farmer now owes '+money(owed-amount)+'.');
+}
+function lnrHint(){const n=lnrFarmer.value.trim();lnrInfo.textContent=n?'Loan / goods owed to you: '+money(loanBalance(n))+' • You owe the farmer for cocoa: '+money(Math.max(0,farmerBalance(n))):''}
+function fillDeduct(id){const l=(db.loans||[]).find(x=>x.id===id);if(!l)return;lnrFarmer.value=l.farmer;lnrHint();lnrAmount.focus();lnrFarmer.scrollIntoView({behavior:'smooth',block:'center'})}
+function deleteLoan(id){const l=(db.loans||[]).find(x=>x.id===id);if(!l)return;if(loanBalance(l.farmer)-(+l.amount||0)<0)return alert("Delete this farmer's deductions first, because they were taken from this loan.");if(confirm('Delete this loan / goods record?')){db.loans=db.loans.filter(x=>x.id!==id);save()}}
+function deleteLoanReturn(id){const r=(db.loanReturns||[]).find(x=>x.id===id);if(!r)return;if(confirm('Delete this deduction? The farmer will owe the loan again, and you will owe the cocoa money again.')){db.loanReturns=db.loanReturns.filter(x=>x.id!==id);db.payments=db.payments.filter(p=>p.id!==r.payId);save()}}
+function renderLoans(){
+ if(!document.getElementById('lnGiven'))return;
+ const loans=db.loans||[],rets=db.loanReturns||[];
+ const given=loans.reduce((a,l)=>a+(+l.amount||0),0),ded=rets.reduce((a,r)=>a+(+r.amount||0),0);
+ lnGiven.textContent=money(given);lnDeducted.textContent=money(ded);lnOwed.textContent=money(given-ded);
+ const names=[];loans.forEach(l=>{if(!names.some(n=>sameName(n,l.farmer)))names.push(l.farmer)});
+ const owing=names.map(n=>({n,bal:loanBalance(n),id:(loans.find(l=>sameName(l.farmer,n))||{}).id})).filter(x=>x.bal>0).sort((a,b)=>b.bal-a.bal);
+ lnOwingList.innerHTML=owing.length?owing.map(x=>`<div class="item row"><div><b>${esc(x.n)}</b><p class="muted">Given ${money(loanGiven(x.n))} • Deducted ${money(loanDeducted(x.n))}</p><p class="muted">Cocoa you owe them: ${money(Math.max(0,farmerBalance(x.n)))}</p></div><div style="text-align:right"><span class="amount">${money(x.bal)}</span><br><button class="secondary" style="margin-top:6px" onclick="fillDeduct(${x.id})">Deduct</button></div></div>`).join(''):'<div class="empty">No farmer owes you a loan or goods.</div>';
+ const hist=[...loans.map(l=>({k:'loan',d:l.date,o:l})),...rets.map(r=>({k:'ret',d:r.date,o:r}))].sort((a,b)=>String(b.d).localeCompare(String(a.d))||b.o.id-a.o.id);
+ lnHistory.innerHTML=hist.length?hist.map(h=>{const o=h.o;return h.k==='loan'?`<div class="item row"><div><b>${o.type==='Goods'?'Goods: '+esc(o.item):'Cash loan'} — ${money(o.amount)}</b><p class="muted">${esc(o.farmer)} • ${esc(o.date)} ${o.note?'• '+esc(o.note):''}</p></div><button class="danger" onclick="deleteLoan(${o.id})">Delete</button></div>`:`<div class="item row"><div><b>Deducted — ${money(o.amount)}</b><p class="muted">${esc(o.farmer)} • ${esc(o.date)} ${o.note?'• '+esc(o.note):''}</p></div><button class="danger" onclick="deleteLoanReturn(${o.id})">Delete</button></div>`}).join(''):'<div class="empty">No loans or goods recorded yet.</div>';
+ const hb=document.getElementById('lnHomeBox');if(hb)hb.innerHTML=`<div class="grid"><div class="stat"><small>Farmers who owe you</small><strong>${owing.length}</strong></div><div class="stat"><small>Total owed to you</small><strong>${money(given-ded)}</strong></div></div>`;
+}
+// V7: real stock count
+function addStockCount(){if(scKg.value==='')return alert('Enter the weight you counted.');const v=+scKg.value;if(!(v>=0))return alert('Invalid weight.');db.stockCounts=db.stockCounts||[];db.stockCounts.unshift({id:Date.now(),date:today(),kg:v});scKg.value='';save();alert('Stock count saved.')}
+function deleteStockCount(id){if(confirm('Delete this stock count?')){db.stockCounts=db.stockCounts.filter(x=>x.id!==id);save()}}
+function renderStockCount(){
+ const el=document.getElementById('scInfo');if(!el)return;
+ const sc=db.stockCounts||[],s=pfStats();
+ if(!sc.length){el.innerHTML='Weigh the cocoa you really have in stock and save it here. The app will compare it with what it expects.';return}
+ const c=sc[0],diff=c.kg-s.expStock,real=s.bought>0?(s.bought-s.delivered-c.kg):0,pct=s.bought>0?real/s.bought*100:0;
+ el.innerHTML=`<div class="grid" style="margin:10px 0"><div class="stat"><small>Last count (${esc(c.date)})</small><strong>${kg(c.kg)}</strong></div><div class="stat"><small>App expected</small><strong>${kg(s.expStock)}</strong></div></div><p>${diff>=0?'You have '+kg(diff)+' MORE than expected.':'You have '+kg(-diff)+' LESS than expected.'}</p><p>Real weight loss so far: ${kg(real)} (${pct.toFixed(2)}% of cocoa bought). Your setting is ${(s.sh*100).toFixed(2)}%.</p>`+sc.slice(0,5).map(x=>`<div class="item row"><span>${esc(x.date)} — ${kg(x.kg)}</span><button class="danger" onclick="deleteStockCount(${x.id})">Delete</button></div>`).join('');
+}
 function pfInit(){loadIntl(false);setInterval(()=>loadIntl(false),30*60*1000)}
 
-pDate.value=today();eDate.value=today();dailyDate.value=today();periodDate.value=today();payDate.value=today();fundDate.value=today();dDate.value=today();addPurchaseRow();render();renderDailyReport();renderPeriodReport();loadCloudConfigFields();if(cloudConfig().apiKey)setTimeout(initCloud,300);pfInit();
+pDate.value=today();eDate.value=today();dailyDate.value=today();periodDate.value=today();payDate.value=today();fundDate.value=today();dDate.value=today();lnDate.value=today();lnrDate.value=today();addPurchaseRow();render();renderDailyReport();renderPeriodReport();loadCloudConfigFields();if(cloudConfig().apiKey)setTimeout(initCloud,300);pfInit();
 </script>
  <style>
 #wa-btn{position:fixed;right:16px;bottom:16px;background:#25D366;color:#fff;
