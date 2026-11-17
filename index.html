@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded',function(){document.body.appendChil
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#245b38">
-<title>CocoaBuy Cameroon V7</title>
+<title>CocoaBuy Cameroon V8</title>
 <style>
 :root{--green:#245b38;--green2:#367b4d;--cream:#f5f4ed;--ink:#1e2b22;--muted:#66736a;--line:#dce4dc;--white:#fff;--red:#a33b32}
 *{box-sizing:border-box}body{margin:0;background:var(--cream);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink)}
@@ -51,15 +51,82 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
 .pf-alert{border-radius:10px;padding:11px 12px;margin:0 0 9px;font-size:13px;line-height:1.45;font-weight:600}
 .pf-good{background:#e4f4e8;color:#1c5a30}.pf-warn{background:#fff3d6;color:#7a5600}.pf-bad{background:#fbe3e0;color:#8a2b22}.pf-info{background:#e8eef6;color:#2d4466}
 @media print{header,nav,.no-print{display:none!important}body{background:#fff}.card{box-shadow:none;border:0}}
+.screen{display:none;min-height:100vh;padding:16px;background:var(--cream)}
+.authbox{max-width:430px;margin:0 auto}
+.brand{text-align:center;padding:22px 10px 14px}.brand h1{margin:0;font-size:28px;color:var(--green)}.brand p{margin:6px 0 0;color:var(--muted)}
+.seg{display:flex;gap:6px;background:#e9eee8;padding:5px;border-radius:12px;margin-bottom:12px}
+.seg button{flex:1;border:0;border-radius:9px;padding:12px;background:transparent;color:var(--green);font-weight:700;font-size:15px}
+.seg button.on{background:var(--green);color:#fff}
+.big input{padding:14px;font-size:17px}.big button.primary{padding:15px;font-size:17px}
+.chip{display:inline-block;border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;white-space:nowrap}
+.chip.active{background:#e4f4e8;color:#1c5a30}.chip.trial{background:#e8eef6;color:#2d4466}.chip.expired{background:#fbe3e0;color:#8a2b22}.chip.soon{background:#fff3d6;color:#7a5600}
+.adminbar{background:var(--green);color:#fff;padding:14px 16px;border-radius:14px;margin-bottom:13px}
+.linkbtn{background:none;border:0;color:var(--green);text-decoration:underline;padding:8px 4px;font-size:13px}
+
 </style>
 </head>
 <body>
-<header><h1>🌱 CocoaBuy Cameroon V7</h1><p>Buying records • Farmer balances • Agent control • Cloud backup</p></header>
+<div id="authScreen" class="screen"><div class="authbox big">
+ <div class="brand"><h1>🌱 CocoaBuy</h1><p>Cocoa buying records for Cameroon</p></div>
+ <div class="card">
+  <div class="seg"><button id="segLogin" class="on" onclick="setAuthMode('login')">Log in</button><button id="segReg" onclick="setAuthMode('register')">Create account</button></div>
+  <div id="authTrialNote" class="notice" style="display:none;margin-bottom:6px">New accounts get <b>7 days free</b>. No payment needed to start.</div>
+  <div id="authNameBox" style="display:none"><label>Your name</label><input id="authName" placeholder="Your full name" autocomplete="name"></div>
+  <label id="authPhoneLabel">Phone number</label><input id="authPhone" inputmode="tel" autocomplete="username" placeholder="Example: 677123456">
+  <label>Password</label><input id="authPass" type="password" autocomplete="current-password" placeholder="At least 6 characters">
+  <div id="authPass2Box" style="display:none"><label>Repeat password</label><input id="authPass2" type="password" autocomplete="new-password" placeholder="Type the password again"></div>
+  <label style="font-weight:500;display:flex;gap:8px;align-items:center"><input type="checkbox" style="width:auto" onchange="togglePw(this.checked)"> Show password</label>
+  <button id="authBtn" class="primary" onclick="doAuth()">Log in</button>
+  <p id="authMsg" style="min-height:20px;font-weight:650;margin:10px 0 0"></p>
+  <div class="actions" style="justify-content:space-between"><button class="linkbtn" onclick="forgotPw()">Forgot password?</button><button class="linkbtn" onclick="ownerMode()">Owner login</button></div>
+ </div>
+ <div id="setupBox" class="card" style="display:none"><h3>Connect to the cloud (owner only)</h3><p class="muted">The app is not connected to Firebase yet. Paste the firebaseConfig block from Firebase → Project settings → Your apps, then tap Save.</p><textarea id="setupText" rows="6" placeholder="const firebaseConfig = { apiKey: ..., appId: ... }"></textarea><button class="secondary" style="margin-top:10px" onclick="saveSetup()">Save</button></div>
+ <p class="muted" style="text-align:center">Your records are private to your login.</p>
+</div></div>
+
+<div id="lockScreen" class="screen"><div class="authbox">
+ <div class="brand"><h1>🔒 Subscription ended</h1><p id="lockWho"></p></div>
+ <div class="card"><div id="lockInfo"></div><h3 style="margin-top:14px">Choose a plan</h3><div id="lockPlans"></div>
+  <p class="muted">Tap a plan. WhatsApp opens. After you pay by Mobile Money and send the proof, your access is opened again.</p>
+  <button class="primary" onclick="location.reload()">I have paid — open my account</button></div>
+ <div class="card"><h3>Your records are kept</h3><p class="muted">Nothing is deleted. You can download a copy of your records now.</p><div class="actions"><button class="secondary" onclick="downloadExpired()">Download my records</button><button class="danger" onclick="logout()">Log out</button></div></div>
+</div></div>
+
+<div id="adminScreen" class="screen"><div class="authbox" style="max-width:760px">
+ <div class="adminbar"><div class="row"><div><b style="font-size:18px">CocoaBuy Admin</b><div style="font-size:12px;opacity:.85" id="adminEmail"></div></div><button class="secondary" onclick="logout()">Log out</button></div></div>
+ <div id="adminVerify" class="card" style="display:none"><h2>Confirm your email</h2><p>For safety, confirm your Gmail once. A link was sent to your email. Open Gmail, tap the link, then come back here.</p><div class="actions"><button class="secondary" onclick="resendVerify()">Send the email again</button><button class="primary" style="margin:0;width:auto;padding:10px 16px" onclick="verifiedNow()">I have confirmed</button></div><p id="verifyMsg" class="muted"></p></div>
+ <div id="adminBody" style="display:none">
+  <div class="card"><div class="grid">
+   <div class="stat"><small>All buyers</small><strong id="adTotal">0</strong></div>
+   <div class="stat"><small>Paid &amp; active</small><strong id="adPaid">0</strong></div>
+   <div class="stat"><small>On free trial</small><strong id="adTrial">0</strong></div>
+   <div class="stat"><small>Expired</small><strong id="adExpired">0</strong></div>
+   <div class="stat" style="grid-column:1/-1"><small>Ending in the next 5 days</small><strong id="adSoon">0</strong></div>
+  </div></div>
+  <div class="card"><h2>Add a buyer</h2>
+   <label>Buyer name</label><input id="abName" placeholder="Full name">
+   <label>Buyer phone number</label><input id="abPhone" inputmode="tel" placeholder="Example: 677123456">
+   <label>Password for the buyer</label><input id="abPass" placeholder="At least 6 characters (example 123456)">
+   <label>Plan</label><select id="abPlan"><option value="trial">7-day free trial</option><option value="monthly">Monthly — 14,550 FCFA</option><option value="six">6 months — 55,000 FCFA</option><option value="year">1 year — 105,000 FCFA</option></select>
+   <button id="abBtn" class="primary" onclick="addBuyer()">Create buyer account</button>
+   <div id="abResult"></div>
+  </div>
+  <div class="card"><div class="row"><h2>Buyers</h2><button class="secondary" onclick="loadAdmin()">Refresh</button></div>
+   <input id="adminSearch" placeholder="Search name or phone" oninput="renderAdmin()" style="margin-bottom:6px">
+   <div id="adminList"></div></div>
+  <div id="cfgHelper" class="card" style="display:none"><h3>Cloud connection line</h3><p class="muted">Copy this line and use it to replace the FB_CONFIG line in index.html on GitHub, so every buyer's phone can connect.</p><textarea id="cfgLine" rows="4" readonly onclick="this.select()"></textarea></div>
+  <div class="notice"><b>Privacy:</b> this screen shows subscriptions only (name, phone, plan, expiry). Buyers' cocoa records are private to each buyer.</div>
+ </div>
+</div></div>
+
+<div id="appRoot" style="display:none">
+<header><h1>🌱 CocoaBuy Cameroon V8</h1><p>Buying records • Farmer balances • Agent control • Cloud backup</p></header>
 <nav id="tabs">
 <button class="active" data-tab="home">Dashboard</button><button data-tab="profit">Profit</button><button data-tab="purchase">New purchase</button><button data-tab="farmers">Farmers</button><button data-tab="payments">Payments</button><button data-tab="loans">Loans</button><button data-tab="agents">Agents</button><button data-tab="deliveries">Deliveries</button><button data-tab="expenses">Expenses</button><button data-tab="reports">Reports</button><button data-tab="settings">Settings</button>
 </nav>
 <main>
 <section id="home" class="active">
+ <div id="subBanner"></div>
  <div class="card"><div class="row"><h2>Business overview</h2><span class="muted" id="modeBadge">Independent + company</span></div><div class="grid">
   <div class="stat"><small>Total cocoa bought</small><strong id="sKg">0 kg</strong></div>
   <div class="stat"><small>Purchase value</small><strong id="sValue">0 FCFA</strong></div>
@@ -67,7 +134,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
   <div class="stat"><small>Number of purchases</small><strong id="sCount">0</strong></div>
  </div></div>
  <div class="card"><div class="row"><h2>Profit &amp; price</h2><button class="secondary" onclick="showTab('profit')">Open</button></div><div id="pfHomeBox"></div></div><div class="card"><div class="row"><h2>Loans &amp; goods to farmers</h2><button class="secondary" onclick="showTab('loans')">Open</button></div><div id="lnHomeBox"></div></div><div class="card"><h2>Agent performance</h2><div id="agentSummary"></div></div><div class="card"><div class="row"><h2>Recent purchases</h2><button class="secondary" onclick="showTab('purchase')">+ Add</button></div><div id="recent"></div></div>
- <div class="notice"><b>Data protection:</b> records are saved on this phone. Connect a cloud account in Settings to turn on automatic online backup. Until cloud status says “Synced”, keep a manual backup too.</div>
+ <div class="notice"><b>Data protection:</b> records are saved on this phone and backed up automatically to your private account when there is internet. Check Settings: it should say “Cloud backup synced”. Keep a manual backup too (Reports → Backup data).</div>
 </section>
 <section id="purchase">
  <div class="card">
@@ -170,21 +237,10 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
   <button class="primary" onclick="saveSettings()">Save settings</button>
   <p class="muted">Business records are stored locally first so the app can continue when the network is unavailable.</p>
  </div>
- <div class="card"><h2>Automatic cloud backup</h2>
-  <div class="notice">Cloud backup requires a Firebase project to be created and connected once. After connection, CocoaBuy automatically uploads saved changes whenever the internet is available. Firebase configuration values are project identifiers, not your account password.</div>
-  <label>Firebase API key</label><input id="cloudApiKey" placeholder="Firebase apiKey">
-  <label>Firebase Auth domain</label><input id="cloudAuthDomain" placeholder="your-project.firebaseapp.com">
-  <label>Firebase Project ID</label><input id="cloudProjectId" placeholder="your-project-id">
-  <label>Firebase App ID</label><input id="cloudAppId" placeholder="Firebase appId">
-  <button class="secondary" onclick="saveCloudConfig()">Save cloud configuration</button>
-  <hr style="border:0;border-top:1px solid var(--line);margin:15px 0">
-  <label>Account email</label><input id="cloudEmail" type="email" autocomplete="username" placeholder="Your email">
-  <label>Password</label><input id="cloudPassword" type="password" autocomplete="current-password" placeholder="Create or enter password">
-  <div class="actions"><button class="secondary" onclick="cloudCreateAccount()">Create cloud account</button><button class="secondary" onclick="cloudSignIn()">Sign in</button><button class="danger" onclick="cloudSignOut()">Sign out</button></div>
-  <p id="cloudStatus" class="notice" style="margin-top:12px">Cloud backup is not connected. Local records remain on this device.</p>
-  <div id="cloudSyncChoices" class="notice" style="display:none;margin-top:12px"><b>Cloud records found.</b><p>Choose how to initialise this phone. Do not choose upload if the cloud already contains records you need.</p><div class="actions"><button class="secondary" onclick="cloudMerge()">Merge both</button><button class="secondary" onclick="cloudRestore()">Restore cloud to phone</button><button class="secondary" onclick="cloudUploadLocal()">Replace cloud with this phone</button></div></div>
- </div>
- <div class="card"><h2>Cloud setup instructions</h2><ol class="muted"><li>Create a Firebase project and register a Web app.</li><li>Enable Authentication → Email/Password.</li><li>Create a Cloud Firestore database.</li><li>Paste the web app configuration above and save it.</li><li>Create an account or sign in. Choose the first sync action.</li></ol><p class="muted">Firestore security rules are provided in the V5 setup guide. Do not launch with open/public database rules.</p></div>
+  <div class="card"><h2>My account</h2><div id="accInfo"></div><div class="actions"><button class="danger" onclick="logout()">Log out</button></div></div>
+ <div class="card"><h2>Subscription plans</h2><div id="plansBox"></div><p class="muted">Tap a plan to message us on WhatsApp. Pay by Mobile Money, send the proof, and your subscription is activated.</p></div>
+ <div class="card"><h2>Automatic cloud backup</h2><p id="cloudStatus" class="notice">Checking cloud backup…</p><p class="muted">Your records are saved on this phone first, then backed up to your private account whenever there is internet. Only your login can open them. The admin screen shows subscriptions only.</p></div>
+ <div class="card"><h2>Change password</h2><label>Current password</label><input id="pwCur" type="password" autocomplete="current-password"><label>New password</label><input id="pwNew" type="password" autocomplete="new-password" placeholder="At least 6 characters"><button class="secondary" style="margin-top:12px" onclick="changePassword()">Change password</button><p class="muted">Write your password in your record book so you do not lose it.</p></div>
 </section>
 <section id="profit">
  <div id="pfAlerts"></div>
@@ -200,8 +256,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
  <div class="card"><h2>Alert settings</h2>
   <label>Smallest margin you accept (FCFA per kg)</label><input type="number" id="pfMinMargin" min="0" step="1">
   <label>Warn me when the international price moves by (%)</label><input type="number" id="pfAlertPct" min="0.5" step="0.5">
-  <label>Weight loss of dried cocoa in stock (%)</label><input type="number" id="pfShrink" min="0" max="20" step="0.01"><p class="muted">Default 1.43% (about 2 kg lost for every 140 kg). Change it if your own weighing shows a different loss.</p><button class="secondary" style="margin-top:12px" onclick="savePfSettings()">Save alert settings</button>
- </div>
+  <label>Weight loss of dried cocoa in stock (%)</label><input type="number" id="pfShrink" min="0" max="20" step="0.01"><p class="muted">Default 1.43% (about 2 kg lost for every 140 kg). Change it if your own weighing shows a different loss.</p><button class="secondary" style="margin-top:12px" onclick="savePfSettings()">Save alert settings</button> </div>
  <div class="card"><div class="actions no-print"><button class="secondary" onclick="sharePfWhatsApp()">Send price update on WhatsApp</button></div></div>
  <div class="card"><h2>Market price history</h2><div id="pfHistory"></div></div>
 </section>
@@ -253,14 +308,24 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
  <div class="card"><h2>Purchase history</h2><div id="purchaseHistory"></div></div>
 </section>
 </main>
+</div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-const KEY='cocoabuy_cameroon_v5';
-const OLD_KEY='cocoabuy_cameroon_v1';
-let db=JSON.parse(localStorage.getItem(KEY)||localStorage.getItem(OLD_KEY)||'{"farmers":[],"purchases":[],"expenses":[],"agents":[],"settings":{"mode":"both","name":""}}');
-db.agents=db.agents||[];db.settings=db.settings||{mode:'both',name:''};db.payments=db.payments||[];db.agentFunds=db.agentFunds||[];db.deliveries=db.deliveries||[];if(!localStorage.getItem(KEY)&&localStorage.getItem(OLD_KEY))localStorage.setItem(KEY,JSON.stringify(db));
+// ===== CocoaBuy V8 settings: edit ONLY the apiKey and appId values below =====
+const FB_CONFIG={apiKey:'PASTE_YOUR_API_KEY_HERE',authDomain:'cocoabuy-79dd4.firebaseapp.com',projectId:'cocoabuy-79dd4',appId:'PASTE_YOUR_APP_ID_HERE'};
+// ==============================================================================
+const OWNER_EMAIL='asakwa874@gmail.com';
+const EMAIL_DOMAIN='@cocoabuy.app';
+const APP_LINK='https://cocoabuy-cameroon.vercel.app';
+const WA_NUMBER='237677098735';
+const DAY=864e5;
+const PLANS={trial:{label:'7-day free trial',days:7,price:0},monthly:{label:'Monthly',days:30,price:14550},six:{label:'6 months',days:180,price:55000},year:{label:'1 year',days:365,price:105000}};
+const DB_LISTS=['farmers','purchases','expenses','agents','payments','agentFunds','deliveries','prices','loans','loanReturns','stockCounts'];
+let KEY='cocoabuy_cameroon_v5',PHONE='',profile=null,fbAuth=null,fbDb=null,booted=false,pendingName='',authMode='login',expTimer=null;
+function normDb(d){d=d||{};DB_LISTS.forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});d.settings=d.settings||{mode:'both',name:''};return d}
+let db=normDb({});
 const money=n=>new Intl.NumberFormat('en-US',{maximumFractionDigits:0}).format(Number(n)||0)+' FCFA';
 const kg=n=>Number(n||0).toLocaleString('en-US',{maximumFractionDigits:2})+' kg';
 const today=()=>dateISO(new Date());
@@ -411,8 +476,7 @@ function renderPeriodReport(){
   <div class="stat"><small>Purchases</small><strong>${d.ps.length}</strong></div>
   <div class="stat"><small>Total weight</small><strong>${kg(d.weight)}</strong></div>
   <div class="stat"><small>Purchase value</small><strong>${money(d.value)}</strong></div>
-  <div class="stat"><small>Paid to farmers</small><strong>${money(d.paid)}</strong></div>
-  <div class="stat"><small>Outstanding</small><strong>${money(d.value-d.paid)}</strong></div>
+  <div class="stat"><small>Paid to farmers</small><strong>${money(d.paid)}</strong></div>  <div class="stat"><small>Outstanding</small><strong>${money(d.value-d.paid)}</strong></div>
   <div class="stat"><small>Other expenses</small><strong>${money(d.expenses)}</strong></div>
  </div>
  <p class="muted">${d.ps.length} purchase transaction(s) and ${d.es.length} expense(s) in this period.</p>`;
@@ -458,28 +522,286 @@ function renderDeliveryList(){let el=document.getElementById('deliveryList');if(
 function deleteDelivery(id){if(confirm('Delete this delivery record?')){db.deliveries=db.deliveries.filter(d=>d.id!==id);save()}}
 function editPurchase(id){let p=db.purchases.find(x=>x.id===id);if(!p)return;let farmer=prompt('Farmer / seller name:',p.farmer);if(farmer===null)return;let weight=Number(prompt('Weight in kg:',p.weight));if(!(weight>0))return alert('Invalid weight.');let price=Number(prompt('Price per kg:',p.price));if(!(price>0))return alert('Invalid price.');let paid=Number(prompt('Total paid so far (including later payments):',p.paid));if(!(paid>=0&&paid<=weight*price))return alert('Invalid amount paid.');p.farmer=farmer.trim();p.weight=weight;p.price=price;p.total=weight*price;p.paid=paid;save();}
 
-// Firebase cloud backup. Local-first: every save is kept on this phone, then queued for cloud sync.
-let cloudApp=null,cloudAuth=null,cloudDb=null,cloudUser=null,cloudReady=false,cloudInitialised=false,cloudTimer=null;
-const CLOUD_CONFIG_KEY='cocoabuy_firebase_config_v5';
-function cloudConfig(){try{return JSON.parse(localStorage.getItem(CLOUD_CONFIG_KEY)||'{}')}catch(e){return {}}}
-function setCloudStatus(msg){let el=document.getElementById('cloudStatus');if(el)el.textContent=msg;}
-function loadCloudConfigFields(){let c=cloudConfig();if(document.getElementById('cloudApiKey')){cloudApiKey.value=c.apiKey||'';cloudAuthDomain.value=c.authDomain||'';cloudProjectId.value=c.projectId||'';cloudAppId.value=c.appId||'';}}
-function saveCloudConfig(){let c={apiKey:cloudApiKey.value.trim(),authDomain:cloudAuthDomain.value.trim(),projectId:cloudProjectId.value.trim(),appId:cloudAppId.value.trim()};if(Object.values(c).some(x=>!x))return alert('Complete all four Firebase configuration fields.');localStorage.setItem(CLOUD_CONFIG_KEY,JSON.stringify(c));initCloud();}
-function initCloud(){let c=cloudConfig();if(!c.apiKey||!c.authDomain||!c.projectId||!c.appId){setCloudStatus('Cloud backup is not configured. Your records are still saved locally.');return false;}if(typeof firebase==='undefined'){setCloudStatus('Firebase could not load. Connect to the internet and reload the app.');return false;}try{cloudApp=firebase.apps.length?firebase.app():firebase.initializeApp(c);cloudAuth=cloudApp.auth();cloudDb=cloudApp.firestore();cloudAuth.onAuthStateChanged(async user=>{cloudUser=user||null;cloudReady=false;if(user){setCloudStatus('Signed in as '+user.email+'. Checking cloud records…');await prepareCloudSync();}else{setCloudStatus('Firebase configured, but no account is signed in.');}});return true;}catch(e){setCloudStatus('Cloud setup error: '+e.message);return false;}}
-async function cloudCreateAccount(){if(!cloudAuth&&!initCloud())return;let email=cloudEmail.value.trim(),password=cloudPassword.value;if(!email||password.length<6)return alert('Enter an email and a password of at least 6 characters.');try{await cloudAuth.createUserWithEmailAndPassword(email,password);cloudPassword.value='';}catch(e){alert('Could not create account: '+e.message);}}
-async function cloudSignIn(){if(!cloudAuth&&!initCloud())return;let email=cloudEmail.value.trim(),password=cloudPassword.value;if(!email||!password)return alert('Enter your email and password.');try{await cloudAuth.signInWithEmailAndPassword(email,password);cloudPassword.value='';}catch(e){alert('Sign-in failed: '+e.message);}}
-async function cloudSignOut(){if(cloudAuth)await cloudAuth.signOut();cloudReady=false;cloudUser=null;setCloudStatus('Signed out. Local records remain on this phone.');}
-function cloudDoc(){return cloudDb.collection('users').doc(cloudUser.uid).collection('cocoabuy').doc('main');}
-async function prepareCloudSync(){try{let snap=await cloudDoc().get(),cloudData=snap.exists?snap.data().payload:null,linked=localStorage.getItem('cocoabuy_cloud_linked_uid_v5')===cloudUser.uid;if(cloudData&&linked){let localStamp=Number(db._localUpdatedAt||0),cloudStamp=Number(cloudData._localUpdatedAt||0);document.getElementById('cloudSyncChoices').style.display='none';if(localStamp>cloudStamp){['farmers','purchases','expenses','agents','payments','agentFunds','deliveries','prices','loans','loanReturns','stockCounts'].forEach(k=>db[k]=mergeById(db[k],cloudData[k]||[]));db.settings={...(cloudData.settings||{}),...(db.settings||{})};localStorage.setItem(KEY,JSON.stringify(db));cloudReady=true;await uploadCloudNow();setCloudStatus('Local changes merged with cloud. Automatic backup is ON.');}else{db=cloudData;db.payments=db.payments||[];db.agentFunds=db.agentFunds||[];db.deliveries=db.deliveries||[];localStorage.setItem(KEY,JSON.stringify(db));cloudReady=true;render();setCloudStatus('Cloud records restored and synced. Automatic backup is ON.');}}else if(cloudData){document.getElementById('cloudSyncChoices').style.display='block';setCloudStatus('Cloud backup found. Choose merge, restore, or replace cloud with this phone.');cloudPendingData=cloudData;}else{cloudReady=true;localStorage.setItem('cocoabuy_cloud_linked_uid_v5',cloudUser.uid);await uploadCloudNow();setCloudStatus('Cloud account connected. Initial backup completed; automatic backup is ON.');}}catch(e){setCloudStatus('Could not read cloud backup: '+e.message);}}
-let cloudPendingData=null;
-function mergeById(a,b){let m=new Map();[...(a||[]),...(b||[])].forEach(x=>m.set(String(x.id),x));return [...m.values()];}
-async function cloudMerge(){if(!cloudPendingData)return;['farmers','purchases','expenses','agents','payments','agentFunds','deliveries','prices','loans','loanReturns','stockCounts'].forEach(k=>db[k]=mergeById(db[k],cloudPendingData[k]||[]));db.settings={...(cloudPendingData.settings||{}),...(db.settings||{})};localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('cocoabuy_cloud_linked_uid_v5',cloudUser.uid);document.getElementById('cloudSyncChoices').style.display='none';cloudReady=true;render();await uploadCloudNow();setCloudStatus('Local and cloud records merged. Automatic backup is ON.');}
-async function cloudRestore(){if(!cloudPendingData)return;if(!confirm('Replace the records on this phone with the cloud backup? Download a local backup first if needed.'))return;db=cloudPendingData;db.payments=db.payments||[];db.agentFunds=db.agentFunds||[];db.deliveries=db.deliveries||[];localStorage.setItem(KEY,JSON.stringify(db));localStorage.setItem('cocoabuy_cloud_linked_uid_v5',cloudUser.uid);document.getElementById('cloudSyncChoices').style.display='none';cloudReady=true;render();setCloudStatus('Cloud records restored to this phone. Automatic backup is ON.');}
-async function cloudUploadLocal(){if(!confirm('Replace the cloud backup with all records currently on this phone?'))return;document.getElementById('cloudSyncChoices').style.display='none';localStorage.setItem('cocoabuy_cloud_linked_uid_v5',cloudUser.uid);cloudReady=true;await uploadCloudNow();setCloudStatus('This phone has replaced the cloud backup. Automatic backup is ON.');}
-window.addEventListener('online',()=>{if(cloudReady&&cloudUser){setCloudStatus('Internet restored. Syncing backup…');uploadCloudNow();}});
-function scheduleCloudBackup(){if(!cloudReady||!cloudUser||!cloudDb)return;clearTimeout(cloudTimer);setCloudStatus('Changes saved on phone. Cloud backup pending…');cloudTimer=setTimeout(uploadCloudNow,1200);}
-async function uploadCloudNow(){if(!cloudReady||!cloudUser||!cloudDb)return;try{db._localUpdatedAt=db._localUpdatedAt||Date.now();let payload=JSON.parse(JSON.stringify(db));await cloudDoc().set({payload,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),appVersion:'5'},{merge:true});setCloudStatus('✓ Cloud backup synced • '+new Date().toLocaleString());}catch(e){setCloudStatus('Cloud backup failed: '+e.message+'. Local copy is safe on this phone; retry when online.');}}
+// ===================== V8: login, subscription, cloud backup, admin =====================
+function fbConfig(){
+ if(!/PASTE_/.test(FB_CONFIG.apiKey+FB_CONFIG.appId))return FB_CONFIG;
+ try{const c=JSON.parse(localStorage.getItem('cocoabuy_firebase_config_v5')||'{}');if(c.apiKey&&c.appId&&c.projectId)return {apiKey:c.apiKey,authDomain:c.authDomain||FB_CONFIG.authDomain,projectId:c.projectId,appId:c.appId}}catch(e){}
+ return null;
+}
+function showScreen(id){['authScreen','lockScreen','adminScreen','appRoot'].forEach(x=>{const el=document.getElementById(x);if(el)el.style.display=(x===id)?'block':'none'});window.scrollTo(0,0)}
+function cleanPhone(v){let d=String(v||'').replace(/\D/g,'');if(d.startsWith('237')&&d.length>9)d=d.slice(3);return d}
+function phoneOk(d){return /^\d{9}$/.test(d)}
+function loginEmail(v){v=String(v||'').trim().toLowerCase();if(v.includes('@'))return v===OWNER_EMAIL?v:'';const d=cleanPhone(v);return phoneOk(d)?d+EMAIL_DOMAIN:''}
+function authMsg(m,ok){const e=document.getElementById('authMsg');if(!e)return;e.textContent=m||'';e.style.color=ok?'#1c5a30':'#a33b32'}
+function friendly(e){
+ const c=(e&&e.code)||'';
+ if(c==='auth/invalid-credential'||c==='auth/wrong-password'||c==='auth/user-not-found'||c==='auth/invalid-login-credentials')return 'Wrong phone number or password.';
+ if(c==='auth/email-already-in-use')return 'This phone number already has an account. Tap "Log in".';
+ if(c==='auth/weak-password')return 'Password must be at least 6 characters.';
+ if(c==='auth/network-request-failed')return 'No internet. Connect and try again.';
+ if(c==='auth/too-many-requests')return 'Too many tries. Wait a few minutes and try again.';
+ if(c==='auth/requires-recent-login')return 'Please log out, log in again, then try again.';
+ if(c==='permission-denied'||c==='firestore/permission-denied')return 'Not allowed. Check that the Firestore rules are published.';
+ return (e&&e.message)||'Something went wrong. Try again.';
+}
+function setAuthMode(m){
+ authMode=m;
+ segLogin.classList.toggle('on',m==='login');segReg.classList.toggle('on',m==='register');
+ authNameBox.style.display=m==='register'?'block':'none';authPass2Box.style.display=m==='register'?'block':'none';authTrialNote.style.display=m==='register'?'block':'none';
+ authBtn.textContent=m==='register'?'Create my account':'Log in';
+ authPass.autocomplete=m==='register'?'new-password':'current-password';
+ authMsg('');
+}
+function togglePw(on){authPass.type=on?'text':'password';authPass2.type=on?'text':'password'}
+function ownerMode(){authPhoneLabel.textContent='Owner email';authPhone.placeholder='Your email';authPhone.inputMode='email';authPhone.focus()}
+function forgotPw(){const p=cleanPhone(authPhone.value);window.open('https://wa.me/'+WA_NUMBER+'?text='+encodeURIComponent("Hello, I forgot my CocoaBuy password."+(phoneOk(p)?" My phone number: "+p+".":"")),'_blank')}
+function saveSetup(){
+ const t=setupText.value,g=k=>{const m=t.match(new RegExp(k+'\\s*[:=]\\s*["\']([^"\']+)["\']'));return m?m[1]:''};
+ const c={apiKey:g('apiKey'),authDomain:g('authDomain')||FB_CONFIG.authDomain,projectId:g('projectId')||FB_CONFIG.projectId,appId:g('appId')};
+ if(!c.apiKey||!c.appId)return alert('Could not find apiKey and appId in what you pasted.');
+ localStorage.setItem('cocoabuy_firebase_config_v5',JSON.stringify(c));location.reload();
+}
+async function doAuth(){
+ if(!fbAuth)return authMsg('The app is not connected to the cloud yet. Owner: paste the Firebase config below.');
+ const email=loginEmail(authPhone.value),pw=authPass.value,isOwner=email===OWNER_EMAIL;
+ if(!email)return authMsg('Enter a valid phone number: 9 digits, example 677123456.');
+ if(pw.length<6)return authMsg('Password must be at least 6 characters.');
+ if(authMode==='register'){
+  const name=authName.value.trim();
+  if(!isOwner&&!name)return authMsg('Enter your name.');
+  if(pw!==authPass2.value)return authMsg('The two passwords are not the same.');
+  pendingName=name;
+ }
+ authBtn.disabled=true;authMsg('Please wait…',true);
+ try{
+  if(authMode==='register'){
+   const cred=await fbAuth.createUserWithEmailAndPassword(email,pw);
+   if(isOwner){try{await cred.user.sendEmailVerification()}catch(e){}}
+  }else await fbAuth.signInWithEmailAndPassword(email,pw);
+ }catch(e){authMsg(friendly(e))}
+ authBtn.disabled=false;
+}
+async function logout(){
+ if(!confirm('Log out of CocoaBuy?'))return;
+ try{await fbAuth.signOut()}catch(e){}
+ location.reload();
+}
+function isExpired(){return !profile||Date.now()>=profile.expiresAt}
+function daysLeft(){return Math.ceil((profile.expiresAt-Date.now())/DAY)}
+function dateText(ms){return new Date(ms).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}
+function planLabel(k){return (PLANS[k]||{label:k}).label}
+async function loadProfile(){
+ const ref=fbDb.collection('users').doc(PHONE),ck='cocoabuy_profile_'+PHONE;
+ try{
+  let s=await ref.get();
+  if(!s.exists){
+   await ref.set({name:pendingName||PHONE,phone:PHONE,plan:'trial',expiresAt:firebase.firestore.Timestamp.fromMillis(Date.now()+7*DAY),createdAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:'self'});
+   s=await ref.get();
+  }
+  const d=s.data()||{};
+  const p={name:d.name||PHONE,phone:PHONE,plan:d.plan||'trial',expiresAt:(d.expiresAt&&d.expiresAt.toMillis)?d.expiresAt.toMillis():0};
+  localStorage.setItem(ck,JSON.stringify(p));return p;
+ }catch(e){
+  try{const c=JSON.parse(localStorage.getItem(ck)||'null');if(c)return c}catch(_){}
+  return null;
+ }
+}
+async function handleUser(user){
+ if(!user){profile=null;PHONE='';showScreen('authScreen');return}
+ const email=(user.email||'').toLowerCase();
+ if(email===OWNER_EMAIL){
+  showScreen('adminScreen');adminEmail.textContent=email;
+  try{await user.reload()}catch(e){}
+  const u=fbAuth.currentUser||user;
+  if(u.emailVerified){try{await u.getIdToken(true)}catch(e){}}
+  initAdmin(u);return;
+ }
+ if(!email.endsWith(EMAIL_DOMAIN)){await fbAuth.signOut();return}
+ PHONE=email.slice(0,-EMAIL_DOMAIN.length);
+ showScreen('authScreen');authMsg('Loading your account…',true);
+ profile=await loadProfile();
+ if(!profile){await fbAuth.signOut();authMsg('Could not load your account. Connect to the internet and log in again.');return}
+ if(isExpired()){showLock();return}
+ showScreen('appRoot');startSession();
+}
+function startSession(){
+ if(!booted){booted=true;bootApp()}
+ renderSub();
+ clearInterval(expTimer);expTimer=setInterval(()=>{if(isExpired())showLock()},60000);
+}
+function plansHTML(){return ['monthly','six','year'].map(k=>{const p=PLANS[k];return `<div class="item row"><div><b>${p.label}</b><p class="muted">${money(p.price)}</p></div><button class="secondary" onclick="contactPlan('${p.label} (${money(p.price)})')">Choose</button></div>`}).join('')}
+function renderSub(){
+ const d=daysLeft(),trial=profile.plan==='trial';
+ const cls=d<=3?'pf-bad':d<=7?'pf-warn':trial?'pf-info':'pf-good';
+ subBanner.innerHTML=(trial||d<=14)?`<div class="pf-alert ${cls}">${trial?'Free trial':esc(planLabel(profile.plan))+' plan'}: ${d} day${d===1?'':'s'} left (until ${dateText(profile.expiresAt)}). <button class="secondary" style="margin-left:6px;padding:6px 10px" onclick="showTab('settings')">Subscribe</button></div>`:'';
+ accInfo.innerHTML=`<p><b>${esc(profile.name)}</b><br><span class="muted">Phone: ${esc(PHONE)}</span></p><p>Plan: <b>${esc(planLabel(profile.plan))}</b><br>Valid until: <b>${dateText(profile.expiresAt)}</b> (${d} day${d===1?'':'s'} left)</p>`;
+ plansBox.innerHTML=plansHTML();
+}
+function showLock(){
+ clearInterval(expTimer);showScreen('lockScreen');
+ lockWho.textContent=profile?profile.name+' • '+PHONE:'';
+ lockInfo.innerHTML=profile?`<p>Your <b>${esc(planLabel(profile.plan))}</b> ended on <b>${dateText(profile.expiresAt)}</b>.</p>`:'';
+ lockPlans.innerHTML=plansHTML();
+}
+async function downloadExpired(){
+ let data=null;
+ try{const s=await cloudDoc().get();if(s.exists)data=s.data().payload}catch(e){}
+ if(!data){try{data=JSON.parse(localStorage.getItem('cocoabuy_v8_'+PHONE)||'null')}catch(e){}}
+ if(!data)return alert('No records found to download.');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='cocoabuy-my-records.json';a.click();URL.revokeObjectURL(a.href);
+}
+async function changePassword(){
+ const u=fbAuth.currentUser;if(!u)return;const cur=pwCur.value,nw=pwNew.value;
+ if(!cur||nw.length<6)return alert('Enter your current password and a new password of at least 6 characters.');
+ try{await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,cur));await u.updatePassword(nw);pwCur.value='';pwNew.value='';alert('Password changed.')}catch(e){alert(friendly(e))}
+}
 
+// ---------- Cloud backup (private per buyer, keyed by phone number) ----------
+let cloudReady=false,cloudTimer=null;
+function setCloudStatus(msg){const el=document.getElementById('cloudStatus');if(el)el.textContent=msg}
+function cloudDoc(){return fbDb.collection('userData').doc(PHONE)}
+function mergeById(a,b){let m=new Map();[...(a||[]),...(b||[])].forEach(x=>m.set(String(x.id),x));return [...m.values()]}
+function mergeCloudInto(cd){DB_LISTS.forEach(k=>db[k]=mergeById(cd[k]||[],db[k]));db.settings={...(cd.settings||{}),...(db.settings||{})}}
+async function prepareCloudSync(){
+ try{
+  const snap=await cloudDoc().get(),cd=snap.exists?snap.data().payload:null,flag='cocoabuy_linked_'+PHONE,linked=localStorage.getItem(flag)==='1';
+  let upload=true;
+  if(cd){
+   if(!linked)mergeCloudInto(cd);
+   else if(Number(db._localUpdatedAt||0)<Number(cd._localUpdatedAt||0)){db=normDb(cd);upload=false}
+   localStorage.setItem(KEY,JSON.stringify(db));
+  }
+  localStorage.setItem(flag,'1');cloudReady=true;render();
+  if(upload)await uploadCloudNow();else setCloudStatus('✓ Cloud backup synced • '+new Date().toLocaleString());
+ }catch(e){setCloudStatus('Cloud backup could not start: '+((e&&e.message)||e)+'. Your records are safe on this phone.')}
+}
+window.addEventListener('online',()=>{if(cloudReady&&PHONE){setCloudStatus('Internet restored. Syncing backup…');uploadCloudNow()}});
+function scheduleCloudBackup(){if(!cloudReady||!fbDb||!PHONE)return;clearTimeout(cloudTimer);setCloudStatus('Changes saved on phone. Cloud backup pending…');cloudTimer=setTimeout(uploadCloudNow,1200)}
+async function uploadCloudNow(){
+ if(!cloudReady||!fbDb||!PHONE)return;
+ if(isExpired()){setCloudStatus('Subscription ended: cloud backup is paused. Your records are safe on this phone.');return}
+ try{
+  db._localUpdatedAt=db._localUpdatedAt||Date.now();
+  const payload=JSON.parse(JSON.stringify(db));
+  await cloudDoc().set({payload,updatedAt:firebase.firestore.FieldValue.serverTimestamp(),appVersion:'8'});
+  setCloudStatus('✓ Cloud backup synced • '+new Date().toLocaleString());
+ }catch(e){setCloudStatus('Cloud backup failed: '+((e&&e.message)||e)+'. Your records are safe on this phone; it will retry when online.')}
+}
+
+// ---------- Admin dashboard (subscriptions only) ----------
+let adminUsers=[],lastBuyer=null;
+function initAdmin(u){
+ if(!u.emailVerified){adminVerify.style.display='block';adminBody.style.display='none';return}
+ adminVerify.style.display='none';adminBody.style.display='block';
+ const c=fbConfig();
+ if(/PASTE_/.test(FB_CONFIG.apiKey+FB_CONFIG.appId)&&c){cfgHelper.style.display='block';cfgLine.value="const FB_CONFIG={apiKey:'"+c.apiKey+"',authDomain:'"+c.authDomain+"',projectId:'"+c.projectId+"',appId:'"+c.appId+"'};"}
+ loadAdmin();
+}
+async function resendVerify(){try{await fbAuth.currentUser.sendEmailVerification();verifyMsg.textContent='Email sent. Check your Gmail (and the spam folder).'}catch(e){verifyMsg.textContent=friendly(e)}}
+async function verifiedNow(){try{const u=fbAuth.currentUser;await u.reload();await u.getIdToken(true);if(!u.emailVerified){verifyMsg.textContent='Not confirmed yet. Tap the link in the email first.';return}initAdmin(u)}catch(e){verifyMsg.textContent=friendly(e)}}
+async function loadAdmin(){
+ adminList.innerHTML='<div class="empty">Loading…</div>';
+ try{
+  const s=await fbDb.collection('users').get();
+  adminUsers=s.docs.map(d=>{const x=d.data();return {id:d.id,name:x.name||d.id,phone:x.phone||d.id,plan:x.plan||'trial',exp:(x.expiresAt&&x.expiresAt.toMillis)?x.expiresAt.toMillis():0}});
+  renderAdmin();
+ }catch(e){adminList.innerHTML='<div class="empty">Could not load buyers: '+esc(friendly(e))+'</div>'}
+}
+function buyerStatus(u){
+ const d=Math.ceil((u.exp-Date.now())/DAY);
+ if(u.exp<=Date.now())return {k:'expired',label:'Expired',d};
+ if(u.plan==='trial')return {k:'trial',label:'Free trial',d};
+ return {k:d<=5?'soon':'active',label:d<=5?'Ending soon':'Paid',d};
+}
+function renderAdmin(){
+ const all=adminUsers.map(u=>({...u,st:buyerStatus(u)}));
+ adTotal.textContent=all.length;
+ adPaid.textContent=all.filter(u=>u.st.k==='active'||u.st.k==='soon').length;
+ adTrial.textContent=all.filter(u=>u.st.k==='trial').length;
+ adExpired.textContent=all.filter(u=>u.st.k==='expired').length;
+ adSoon.textContent=all.filter(u=>u.st.k!=='expired'&&u.st.d<=5).length;
+ const q=adminSearch.value.trim().toLowerCase();
+ const list=all.filter(u=>!q||u.name.toLowerCase().includes(q)||u.phone.includes(q)).sort((a,b)=>a.exp-b.exp);
+ adminList.innerHTML=list.length?list.map(u=>`<div class="item"><div class="row"><div><b>${esc(u.name)}</b><p class="muted">${esc(u.phone)} • ${esc(planLabel(u.plan))}</p></div><span class="chip ${u.st.k}">${u.st.label}</span></div><p class="muted">${u.st.k==='expired'?'Ended':'Until'} ${dateText(u.exp)}${u.st.k==='expired'?'':' • '+u.st.d+' day'+(u.st.d===1?'':'s')+' left'}</p><div class="actions"><select id="rn_${u.id}" style="width:auto"><option value="monthly">Monthly</option><option value="six">6 months</option><option value="year">1 year</option></select><button class="secondary" onclick="renewBuyer('${u.id}')">Renew</button><button class="secondary" onclick="remindBuyer('${u.id}')">WhatsApp</button></div></div>`).join(''):'<div class="empty">No buyers yet.</div>';
+}async function renewBuyer(id){
+ const u=adminUsers.find(x=>x.id===id);if(!u)return;
+ const plan=document.getElementById('rn_'+id).value,P=PLANS[plan];
+ if(!confirm('Renew '+u.name+' for '+P.label+' (+'+P.days+' days)?'))return;
+ const base=Math.max(Date.now(),u.exp);
+ try{await fbDb.collection('users').doc(id).update({plan,expiresAt:firebase.firestore.Timestamp.fromMillis(base+P.days*DAY),renewedAt:firebase.firestore.FieldValue.serverTimestamp()});await loadAdmin()}catch(e){alert(friendly(e))}
+}
+function remindBuyer(id){
+ const u=adminUsers.find(x=>x.id===id);if(!u)return;const st=buyerStatus(u);
+ const msg=st.k==='expired'||st.d<=5
+  ?`Hello ${u.name}, your CocoaBuy subscription ${st.k==='expired'?'has ended':'ends on '+dateText(u.exp)}. To continue: Monthly ${money(PLANS.monthly.price)}, 6 months ${money(PLANS.six.price)}, 1 year ${money(PLANS.year.price)}. Thank you!`
+  :`Hello ${u.name}, this is CocoaBuy. How is the app working for you?`;
+ window.open('https://wa.me/237'+u.phone+'?text='+encodeURIComponent(msg),'_blank');
+}
+async function addBuyer(){
+ const name=abName.value.trim(),phone=cleanPhone(abPhone.value),pw=abPass.value,plan=abPlan.value,P=PLANS[plan];
+ if(!name)return alert('Enter the buyer name.');
+ if(!phoneOk(phone))return alert('Enter a valid phone number: 9 digits, example 677123456.');
+ if(pw.length<6)return alert('The password must be at least 6 characters.');
+ abBtn.disabled=true;abResult.innerHTML='';
+ let app2=null;
+ try{
+  app2=firebase.initializeApp(fbConfig(),'adminCreate'+Date.now());
+  let created=true;
+  try{await app2.auth().createUserWithEmailAndPassword(phone+EMAIL_DOMAIN,pw)}
+  catch(e){if(e.code==='auth/email-already-in-use')created=false;else throw e}
+  const ref=fbDb.collection('users').doc(phone),ex=await ref.get();
+  if(!ex.exists)await ref.set({name,phone,plan,expiresAt:firebase.firestore.Timestamp.fromMillis(Date.now()+P.days*DAY),createdAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:'owner'});
+  lastBuyer={name,phone,pw};
+  abResult.innerHTML=created
+   ?`<div class="notice" style="margin-top:12px"><b>Account ready for ${esc(name)}</b><br>Phone: ${esc(phone)}<br>Password: ${esc(pw)}<br>Plan: ${esc(P.label)}</div><button class="primary" onclick="shareBuyerLogin()">Send login on WhatsApp</button>`
+   :`<div class="notice" style="margin-top:12px">This phone number already has a login, so its password was not changed. ${ex.exists?'Its subscription was kept.':'A subscription record was created.'}</div>`;
+  abName.value='';abPhone.value='';abPass.value='';
+  await loadAdmin();
+ }catch(e){alert(friendly(e))}
+ finally{
+  if(app2){try{await app2.auth().signOut()}catch(_){}try{await app2.delete()}catch(_){}}
+  abBtn.disabled=false;
+ }
+}
+function shareBuyerLogin(){
+ if(!lastBuyer)return;
+ const msg=`Hello ${lastBuyer.name}, your CocoaBuy account is ready.\nOpen: ${APP_LINK}\nPhone: ${lastBuyer.phone}\nPassword: ${lastBuyer.pw}\nYou can change your password in Settings.`;
+ window.open('https://wa.me/237'+lastBuyer.phone+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+// ---------- Start ----------
+function authInit(){
+ const cfg=fbConfig();
+ if(!cfg||typeof firebase==='undefined'){
+  showScreen('authScreen');
+  authMsg(typeof firebase==='undefined'?'Could not load. Connect to the internet and reload.':'The app is not connected to the cloud yet.');
+  if(!cfg)setupBox.style.display='block';
+  return;
+ }
+ try{fbAuth=firebase.initializeApp(cfg).auth();fbDb=firebase.app().firestore()}catch(e){showScreen('authScreen');authMsg('Setup error: '+e.message);return}
+ fbAuth.onAuthStateChanged(handleUser);
+}
+function bootApp(){
+ KEY='cocoabuy_v8_'+PHONE;
+ const raw=localStorage.getItem(KEY);
+ if(raw){try{db=normDb(JSON.parse(raw))}catch(e){db=normDb({})}}
+ else{
+  const legacy=localStorage.getItem('cocoabuy_cameroon_v5')||localStorage.getItem('cocoabuy_cameroon_v1');
+  if(legacy&&localStorage.getItem('cocoabuy_legacy_claimed')!=='1'&&localStorage.getItem('cocoabuy_legacy_declined_'+PHONE)!=='1'){
+   try{
+    const ld=normDb(JSON.parse(legacy));
+    if(ld.purchases.length||ld.farmers.length||ld.expenses.length){
+     if(confirm('Records from the old CocoaBuy were found on this phone. Use them in this account?')){db=ld;localStorage.setItem('cocoabuy_legacy_claimed','1')}
+     else localStorage.setItem('cocoabuy_legacy_declined_'+PHONE,'1');
+    }
+   }catch(e){}
+  }
+  localStorage.setItem(KEY,JSON.stringify(db));
+ }
+ startApp();
+ setCloudStatus('Connecting to cloud backup…');
+ prepareCloudSync();
+}
 
 function removePurchase(id){if(confirm('Delete this purchase record?')){db.purchases=db.purchases.filter(x=>x.id!==id);save()}}
 function removeExpense(id){if(confirm('Delete this expense?')){db.expenses=db.expenses.filter(x=>x.id!==id);save()}}
@@ -626,7 +948,8 @@ function renderStockCount(){
 }
 function pfInit(){loadIntl(false);setInterval(()=>loadIntl(false),30*60*1000)}
 
-pDate.value=today();eDate.value=today();dailyDate.value=today();periodDate.value=today();payDate.value=today();fundDate.value=today();dDate.value=today();lnDate.value=today();lnrDate.value=today();addPurchaseRow();render();renderDailyReport();renderPeriodReport();loadCloudConfigFields();if(cloudConfig().apiKey)setTimeout(initCloud,300);pfInit();
+function startApp(){pDate.value=today();eDate.value=today();dailyDate.value=today();periodDate.value=today();payDate.value=today();fundDate.value=today();dDate.value=today();lnDate.value=today();lnrDate.value=today();addPurchaseRow();render();renderDailyReport();renderPeriodReport();pfInit();}
+authInit();
 </script>
  <style>
 #wa-btn{position:fixed;right:16px;bottom:16px;background:#25D366;color:#fff;
@@ -640,8 +963,7 @@ href="https://wa.me/237677098735?text=Hello%2C%20I%27m%20interested%20in%20Cocoa
 
 <script>
 function contactPlan(plan){
-  var msg = "Hello, I'm interested in the " + plan + " plan for CocoaBuy.";
+  var msg = "Hello, I'm interested in the " + plan + " plan for CocoaBuy." + (typeof PHONE!=="undefined"&&PHONE?" My phone number: "+PHONE+".":"");
   window.open("https://wa.me/237677098735?text=" + encodeURIComponent(msg), "_blank");
 }
 </script>
-</body></html>
