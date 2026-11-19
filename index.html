@@ -590,7 +590,20 @@ function isExpired(){return !profile||Date.now()>=profile.expiresAt}
 function daysLeft(){return Math.ceil((profile.expiresAt-Date.now())/DAY)}
 function dateText(ms){return new Date(ms).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})}
 function planLabel(k){return (PLANS[k]||{label:k}).label}
-async function loadProfile(){
+function touchSeen(ref,d){
+ try{
+  const last=(d.lastSeen&&d.lastSeen.toMillis)?d.lastSeen.toMillis():0;
+  if(Date.now()-last>10*60000)ref.update({lastSeen:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
+ }catch(e){}
+}
+ function lastSeenText(ms){
+ if(!ms)return 'Last opened: not yet';
+ const d=new Date(ms),t=d.toLocaleTimeString('en-GB',{hour:'numeric',minute:'2-digit',hour12:true});
+ if(d.toDateString()===new Date().toDateString())return 'Last opened: today, '+t;
+ if(d.toDateString()===new Date(Date.now()-864e5).toDateString())return 'Last opened: yesterday, '+t;
+ return 'Last opened: '+dateText(ms);
+}
+ async function loadProfile(){
  const ref=fbDb.collection('users').doc(PHONE),ck='cocoabuy_profile_'+PHONE;
  try{
   let s=await ref.get();
@@ -598,7 +611,7 @@ async function loadProfile(){
    await ref.set({name:pendingName||PHONE,phone:PHONE,plan:'trial',expiresAt:firebase.firestore.Timestamp.fromMillis(Date.now()+7*DAY),createdAt:firebase.firestore.FieldValue.serverTimestamp(),createdBy:'self'});
    s=await ref.get();
   }
-  const d=s.data()||{};
+  const d=s.data()||{};touchSeen(ref,d);
   const p={name:d.name||PHONE,phone:PHONE,plan:d.plan||'trial',expiresAt:(d.expiresAt&&d.expiresAt.toMillis)?d.expiresAt.toMillis():0};
   localStorage.setItem(ck,JSON.stringify(p));return p;
  }catch(e){
@@ -703,7 +716,7 @@ async function loadAdmin(){
  adminList.innerHTML='<div class="empty">Loading…</div>';
  try{
   const s=await fbDb.collection('users').get();
-  adminUsers=s.docs.map(d=>{const x=d.data();return {id:d.id,name:x.name||d.id,phone:x.phone||d.id,plan:x.plan||'trial',exp:(x.expiresAt&&x.expiresAt.toMillis)?x.expiresAt.toMillis():0}});
+  adminUsers=s.docs.map(d=>{const x=d.data();return {id:d.id,name:x.name||d.id,phone:x.phone||d.id,plan:x.plan||'trial',seen:(x.lastSeen&&x.lastSeen.toMillis)?x.lastSeen.toMillis():0,exp:(x.expiresAt&&x.expiresAt.toMillis)?x.expiresAt.toMillis():0}});
   renderAdmin();
  }catch(e){adminList.innerHTML='<div class="empty">Could not load buyers: '+esc(friendly(e))+'</div>'}
 }
@@ -723,7 +736,7 @@ function renderAdmin(){
  const q=adminSearch.value.trim().toLowerCase();
  const list=all.filter(u=>!q||u.name.toLowerCase().includes(q)||u.phone.includes(q)).sort((a,b)=>a.exp-b.exp);
  adminList.innerHTML=list.length?list.map(u=>`<div class="item"><div class="row"><div><b>${esc(u.name)}</b><p class="muted">${esc(u.phone)} • ${esc(planLabel(u.plan))}</p></div><span class="chip ${u.st.k}">${u.st.label}</span></div><p class="muted">${u.st.k==='expired'?'Ended':'Until'} ${dateText(u.exp)}${u.st.k==='expired'?'':' • '+u.st.d+' day'+(u.st.d===1?'':'s')+' left'}</p><div class="actions"><select id="rn_${u.id}" style="width:auto"><option value="monthly">Monthly</option><option value="six">6 months</option><option value="year">1 year</option></select><button class="secondary" onclick="renewBuyer('${u.id}')">Renew</button><button class="secondary" onclick="remindBuyer('${u.id}')">WhatsApp</button></div></div>`).join(''):'<div class="empty">No buyers yet.</div>';
-}async function renewBuyer(id){
+adminList.querySelectorAll('.item').forEach((el,i)=>{const u=list[i];const box=el.querySelector('.row > div');if(u&&box){const p=document.createElement('p');p.className='muted';p.textContent=lastSeenText(u.seen);box.appendChild(p)}});}async function renewBuyer(id){
  const u=adminUsers.find(x=>x.id===id);if(!u)return;
  const plan=document.getElementById('rn_'+id).value,P=PLANS[plan];
  if(!confirm('Renew '+u.name+' for '+P.label+' (+'+P.days+' days)?'))return;
